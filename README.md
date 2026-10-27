@@ -55,7 +55,7 @@ Cuando 1+ valores no son normales → banner de alerta + alerta grande modal + s
 
 - `index.html` — juego completo (visor MR + telemetría integrada + motor de simulación)
 - `monitor.html` — pantalla externa independiente (ideal segundo monitor / proyector)
-- `assets/dispositivo.png` — foto del arnés real usado como avatar
+- `assets/dispositivo.png` — foto del arnés real usada como avatar (si falta, cae a `Captura de pantalla …png`)
 
 Ambos HTML son autocontenidos, sin build step, usan Chart.js por CDN y Web Audio API para alertas. Sincronización por `BroadcastChannel('guardian_mr')`.
 
@@ -64,7 +64,7 @@ Ambos HTML son autocontenidos, sin build step, usan Chart.js por CDN y Web Audio
 Es estático — funciona en GitHub Pages:
 
 ```bash
-git push origin arena/062da380-modelo3d
+git push origin main
 # Activar Pages desde main → root
 ```
 
