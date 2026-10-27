@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GUARDIAN MR — Merged Reality Safety System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&family=Oxanium:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0a0f14;
+  --panel:#101a23;
+  --panel2:#14202e;
+  --line:#1e3347;
+  --cyan:#00e5ff;
+  --cyan2:#00b8d4;
+  --lime:#a8ff38;
+  --amber:#ffae00;
+  --red:#ff253a;
+  --red2:#7a121b;
+  --text:#e6f1ff;
+  --muted:#7e96ad;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk',system-ui,sans-serif;background:radial-gradient(1200px 600px at 30% -10%, #0f2a44 0%, transparent 60%), radial-gradient(900px 500px at 100% 0%, #0a2e2a 0%, transparent 60%), var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a{color:inherit}
+.mono{font-family:'JetBrains Mono',monospace}
+.ox{font-family:'Oxanium',sans-serif}
+
+/* TOP BAR */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(10,15,20,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#00e5ff,#0077ff);display:grid;place-items:center;box-shadow:0 6px 18px rgba(0,229,255,.35);font-weight:800;letter-spacing:.5px}
+.brand h1{font-size:18px;line-height:1;letter-spacing:1.2px}
+.brand p{font-size:11px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+.mid{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);padding:7px 10px;border-radius:999px;font-size:12px}
+.led{width:9px;height:9px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.right-top{display:flex;align-items:center;gap:8px}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;font-size:12px;letter-spacing:.4px;display:inline-flex;align-items:center;gap:7px;transition:.2s}
+.btn:hover{border-color:#2a4e6e;transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(135deg,#00e5ff,#0066ff);color:#00131a;border-color:transparent;box-shadow:0 8px 18px rgba(0,102,255,.35)}
+.btn.danger{background:linear-gradient(135deg,#ff3b30,#a50012);border-color:transparent;color:white}
+.btn.ghost{background:transparent}
+.btn:active{transform:translateY(0)}
+.icon{width:16px;height:16px;display:inline-block}
+
+/* LAYOUT */
+.wrap{max-width:1540px;margin:0 auto;padding:14px;display:grid;grid-template-columns:1.55fr .85fr;gap:14px}
+@media(max-width:1100px){.wrap{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg, rgba(20,32,46,.98), rgba(11,18,27,.98));border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.card-hd{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
+.card-hd h3{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#cfe3ff;display:flex;align-items:center;gap:8px}
+.badge{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:rgba(0,229,255,.08);color:var(--cyan)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+
+/* VISOR */
+.visor{position:relative;height:640px;display:flex;flex-direction:column;background:#060a0f}
+@media(max-width:700px){.visor{height:560px}}
+.visor-top{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid rgba(255,255,255,.06);background:linear-gradient(90deg, rgba(0,229,255,.08), transparent);font-size:11px;letter-spacing:.6px;color:#a8c0d8}
+.visor-stage{flex:1;position:relative;overflow:hidden;background:#04070b}
+#envCanvas{position:absolute;inset:0;width:100%;height:100%}
+.env-bg{position:absolute;inset:0;transition:all .6s ease}
+.env-image{position:absolute;inset:0;opacity:.9;background-size:cover;background-position:center;filter:contrast(1.05) saturate(1.1)}
+.vignette{position:absolute;inset:0;background:radial-gradient(800px 400px at 50% 30%, transparent 40%, rgba(0,0,0,.55) 85%), linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.45))}
+.scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg, rgba(0,229,255,.05) 0 1px, transparent 1px 3px);opacity:.25;pointer-events:none}
+.gridOverlay{position:absolute;inset:0;background:
+  linear-gradient(rgba(0,229,255,.07) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(0,229,255,.07) 1px, transparent 1px);
+  background-size:40px 40px;opacity:.18}
+
+/* HUD CORNERS */
+.hud{position:absolute;inset:14px;pointer-events:none}
+.corner{position:absolute;width:46px;height:46px;border-color:var(--cyan);opacity:.9}
+.corner::before,.corner::after{content:"";position:absolute;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.corner.tl{top:0;left:0;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+.corner.tr{top:0;right:0;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan)}
+.corner.bl{bottom:0;left:0;border-bottom:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+.corner.br{bottom:0;right:0;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
+.hud-center{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);display:grid;place-items:center;pointer-events:none}
+.reticle{width:88px;height:88px;border:1px solid rgba(0,229,255,.55);border-radius:50%;display:grid;place-items:center;position:relative;box-shadow:0 0 20px rgba(0,229,255,.35), inset 0 0 20px rgba(0,229,255,.15)}
+.reticle::before{content:"";width:54px;height:54px;border:1px dashed rgba(0,229,255,.4);border-radius:50%;position:absolute;animation:spin 6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.reticle-dot{width:10px;height:10px;background:var(--cyan);border-radius:50%;box-shadow:0 0 10px var(--cyan)}
+.hud-data{position:absolute;left:14px;top:14px;display:flex;flex-direction:column;gap:6px}
+.hud-chip{background:rgba(8,18,30,.82);border:1px solid rgba(0,229,255,.35);color:#cfe8ff;padding:6px 9px;border-radius:8px;font-size:11px;letter-spacing:.5px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(6px)}
+.hud-chip b{color:var(--cyan)}
+.hud-right{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.mini-bars{width:132px;background:rgba(8,18,30,.88);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px}
+
+/* AVATAR PANEL */
+.avatar-wrap{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:min(560px,92%);display:flex;gap:10px;align-items:stretch;pointer-events:auto}
+.avatar-card{flex:1;background:rgba(10,18,29,.92);border:1px solid rgba(0,229,255,.35);border-radius:14px;padding:10px;display:flex;gap:10px;align-items:center;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.avatar-img{width:92px;height:110px;border-radius:10px;overflow:hidden;background:#0b121a;border:1px solid rgba(255,255,255,.08);position:relative;flex-shrink:0}
+.avatar-img img{width:100%;height:100%;object-fit:cover;object-position:top center;filter:contrast(1.1)}
+.heatGlow{position:absolute;inset:0;opacity:0;transition:.4s;mix-blend-mode:screen}
+.avatar-meta{flex:1}
+.avatar-meta h4{font-size:13px;letter-spacing:.6px}
+.state-pill{display:inline-flex;align-items:center;gap:6px;margin-top:4px;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.5px;border:1px solid var(--line)}
+.state-ok{background:rgba(168,255,56,.12);color:var(--lime);border-color:rgba(168,255,56,.35)}
+.state-warn{background:rgba(255,174,0,.14);color:var(--amber);border-color:rgba(255,174,0,.4)}
+.state-crit{background:rgba(255,37,58,.18);color:#ff6b7a;border-color:rgba(255,37,58,.5);animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.6}}
+.vitals-mini{display:flex;gap:8px;margin-top:8px}
+.vmini{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:6px;text-align:center}
+.vmini span{font-size:9px;letter-spacing:.8px;color:var(--muted);text-transform:uppercase}
+.vmini b{font-size:13px;display:block;margin-top:2px}
+.vmini.crit b{color:var(--red)}
+.vmini.warn b{color:var(--amber)}
+
+/* JOYSTICK / CONTROLS BAR */
+.controls{padding:10px 12px;background:rgba(255,255,255,.02);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.scenarios{display:flex;flex-wrap:wrap;gap:8px}
+.scn{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#0f1b28;color:#dbe8ff;font-weight:700;font-size:11px;letter-spacing:.5px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s}
+.scn:hover{transform:translateY(-1px);border-color:#2e5a82}
+.scn.active{outline:2px solid var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px rgba(0,229,255,.45)}
+.scn.heat.active{background:linear-gradient(135deg,#ff6a00,#ff0f39);color:white}
+.scn.fall.active{background:linear-gradient(135deg,#7c3aed,#00e5ff);color:white}
+.scn.trap.active{background:linear-gradient(135deg,#1a1a1a,#ff3b30);color:white}
+.scn.effort.active{background:linear-gradient(135deg,#00c853,#00e5ff);color:#002013}
+.movement{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.keys{display:flex;gap:4px}
+.k{width:26px;height:26px;display:grid;place-items:center;border:1px solid var(--line);background:var(--panel2);border-radius:6px;font-weight:800;font-size:11px}
+.k.pressed{background:var(--cyan);color:#001219;border-color:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+
+/* RIGHT PANEL */
+.telemetry{display:flex;flex-direction:column;gap:14px}
+.gauges{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gauge{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:14px;padding:12px;position:relative;overflow:hidden}
+.gauge::after{content:"";position:absolute;inset:auto -20% -30% -20%;height:60%;background:radial-gradient(400px 120px at 50% 0%, rgba(0,229,255,.08), transparent 70%);pointer-events:none}
+.gauge h5{font-size:10px;letter-spacing:.9px;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.gauge .val{font-family:'Oxanium',sans-serif;font-size:30px;font-weight:800;line-height:1;margin-top:6px;letter-spacing:.5px}
+.gauge .unit{font-size:12px;color:var(--muted);margin-left:4px;font-weight:600}
+.gauge .sub{font-size:11px;color:#9bb3c9;margin-top:2px}
+.bar{height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:30%;border-radius:999px;transition:width .4s ease}
+.bar .ok{background:linear-gradient(90deg,#a8ff38,#00e5ff)}
+.bar .warn{background:linear-gradient(90deg,#ffae00,#ff6a00)}
+.bar .crit{background:linear-gradient(90deg,#ff253a,#ff6a00);animation:barpulse 1s infinite}
+@keyframes barpulse{0%,100%{opacity:1}50%{opacity:.6}}
+.gauge.warn{border-color:rgba(255,174,0,.45)}
+.gauge.crit{border-color:rgba(255,37,58,.6);box-shadow:0 0 18px rgba(255,37,58,.25)}
+
+.wide{grid-column:span 2}
+.charts{background:var(--panel);border-radius:14px;padding:10px;border:1px solid var(--line)}
+.alert-log{background:rgba(255,37,58,.06);border:1px solid rgba(255,37,58,.18);border-radius:12px;padding:10px;max-height:150px;overflow:auto}
+.alert-item{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:8px;font-size:12px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.06);margin-bottom:6px}
+.alert-item.crit{border-color:rgba(255,37,58,.4);background:rgba(255,37,58,.12)}
+.alert-item.warn{border-color:rgba(255,174,0,.35);background:rgba(255,174,0,.09)}
+.logtime{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.reportHead{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.18);border-radius:12px}
+.switch{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px;gap:3px}
+.switch button{padding:6px 10px;border-radius:999px;border:none;background:transparent;color:var(--muted);font-weight:700;font-size:11px;cursor:pointer}
+.switch button.on{background:var(--cyan);color:#001219;box-shadow:0 4px 12px rgba(0,229,255,.35)}
+
+/* ALERT OVERLAY */
+.alertOverlay{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(120,0,10,.28);backdrop-filter:blur(2px)}
+.alertOverlay.show{display:grid}
+.alertBox{width:min(560px,92%);background:linear-gradient(180deg,#1a0a0e,#0f0f14);border:2px solid var(--red);border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(255,0,30,.45), 0 0 0 8px rgba(255,0,30,.08);text-align:center;animation:shake .5s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.alertBox h2{font-family:'Oxanium',sans-serif;font-size:28px;letter-spacing:1px;color:white}
+.alertBox p{color:#ffabb2;margin-top:6px}
+.flash{position:absolute;inset:0;border:3px solid var(--red);border-radius:16px;pointer-events:none;animation:flashBd 1s infinite}
+@keyframes flashBd{0%,100%{opacity:.9}50%{opacity:.15}}
+
+/* Thermal & particles */
+.particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.p{position:absolute;width:3px;height:3px;background:rgba(255,120,0,.9);border-radius:50%;filter:blur(.3px);animation:rise linear infinite}
+@keyframes rise{from{transform:translateY(110%)}to{transform:translateY(-20%)}}
+.fallFlash{position:absolute;inset:0;background:rgba(255,255,255,.85);opacity:0;pointer-events:none}
+.fallFlash.on{animation:flashW .6s}
+@keyframes flashW{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+.trappedOverlay{position:absolute;inset:0;background:radial-gradient(600px 400px at 50% 50%, rgba(0,0,0,.0), rgba(0,0,0,.65) 75%), linear-gradient(180deg, rgba(40,0,0,.2), rgba(0,0,0,.4));opacity:0;transition:.5s;pointer-events:none}
+.trappedOverlay.on{opacity:1}
+.dust{position:absolute;inset:0;background:radial-gradient(circle at 30% 40%, rgba(255,255,255,.08) 0 1px, transparent 1.5px), radial-gradient(circle at 70% 60%, rgba(255,255,255,.06) 0 1px, transparent 1.2px);background-size:220px 220px, 180px 180px;opacity:.5;animation:dustMove 8s linear infinite}
+@keyframes dustMove{to{background-position:220px 220px, 180px 180px}}
+
+/* webcam video */
+#cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:.4s}
+#cam.on{opacity:.92}
+
+/* tutorial */
+.tuto{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(420px,88%);background:rgba(10,18,28,.96);border:1px solid rgba(0,229,255,.5);border-radius:14px;padding:16px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+.tuto h3{font-family:'Oxanium',sans-serif;letter-spacing:.8px}
+.tuto p{font-size:12px;color:#b9cce0;margin-top:6px;line-height:1.5}
+.hl{color:var(--cyan);font-weight:800}
+</style>
+</head>
+<body>
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">GM</div>
+    <div>
+      <h1 class="ox">GUARDIAN MR</h1>
+      <p>Merged Reality • Dispositivo Torácico Inteligente</p>
+    </div>
+    <div class="pill" style="margin-left:8px">
+      <span class="led" id="led"></span>
+      <span class="mono" id="connTxt">CONECTADO • BLE 5.2 • 98%</span>
+    </div>
+  </div>
+  <div class="mid">
+    <div class="pill mono" id="clock">--:--:-- • --/--/----</div>
+    <div class="pill mono" id="reportId">RPT-2026-0001</div>
+    <div class="pill" style="gap:6px"><span class="dot"></span> <b class="ox" style="font-size:12px;letter-spacing:.6px">EN VIVO</b> <span class="mono" style="font-size:11px;color:var(--muted)">Centro de Control</span></div>
+  </div>
+  <div class="right-top">
+    <button class="btn" id="btnCam">📷 Activar Passthrough MR</button>
+    <button class="btn primary" id="btnMonitor">⧉ Abrir Pantalla Externa</button>
+    <button class="btn ghost" id="btnSound" title="Sonido">🔊</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- LEFT: VISOR MR -->
+  <section class="card">
+    <div class="card-hd">
+      <h3>◉ VISOR MERGED REALITY — Operario #07</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge mono" id="envName">NAVE INDUSTRIAL • 24°C</span>
+        <span class="badge" id="fps">60 FPS • MR</span>
+      </div>
+    </div>
+    <div class="visor">
+      <div class="visor-top mono">
+        <span>⟡ GUARDIAN OS v2.4.1 • TRACKING: ESTABLE • LAT: 4.628° N • LON: 74.062° W</span>
+        <span style="display:flex;gap:10px;align-items:center">
+          <span id="batteryHud">◧ 87%</span>
+          <span style="color:var(--lime)">● SEÑAL 4/4</span>
+          <span>REC ● 00:42:11</span>
+        </span>
+      </div>
+
+      <div class="visor-stage" id="stage">
+        <video id="cam" autoplay muted playsinline></video>
+        <div class="env-bg" id="envBg">
+          <div class="env-image" id="envImage"></div>
+          <div class="vignette"></div>
+          <div class="gridOverlay"></div>
+          <canvas id="envCanvas"></canvas>
+          <div class="particles" id="particles"></div>
+          <div class="fallFlash" id="fallFlash"></div>
+          <div class="trappedOverlay" id="trappedFx"><div class="dust"></div></div>
+        </div>
+
+        <div class="hud">
+          <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+          <div class="hud-center"><div class="reticle"><div class="reticle-dot"></div></div></div>
+          <div class="hud-data">
+            <div class="hud-chip">TEMP AMBIENTE <b id="hudTempAmb">24.2°C</b></div>
+            <div class="hud-chip">ESTADO <b id="hudState" style="color:var(--lime)">ESTABLE</b></div>
+            <div class="hud-chip mono" id="hudCoords">X: 12.4m • Y: 3.2m • Z: 0.9m</div>
+          </div>
+          <div class="hud-right">
+            <div class="mini-bars">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:.6px"><span>FC</span><span class="mono" id="hudHr">78 BPM</span></div>
+              <div class="bar"><i id="barHr" class="ok" style="width:42%"></i></div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px"><span>SpO₂</span><span class="mono" id="hudSpo2">97%</span></div>
+              <div class="bar"><i id="barSpo2" class="ok" style="width:88%"></i></div>
+              <div style="font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:.5px">MODO: <span style="color:var(--cyan)" id="hudMode">TÉRMICO OFF</span> • CAÍDA: <span id="hudFall" style="color:var(--lime)">NO</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TUTORIAL -->
+        <div class="tuto" id="tuto">
+          <h3>👋 Bienvenido, Operario</h3>
+          <p>Estás equipado con el <span class="hl">arnes torácico GUARDIAN</span> (imagen real del dispositivo). Tu misión: moverte por la planta y sobrevivir a eventos aleatorios.<br>Usa <span class="hl">WASD</span> para moverte, activa escenarios peligrosos abajo y observa como la <span class="hl">pantalla externa</span> dispara alertas cuando tus signos salen de rango.</p>
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+            <button class="btn primary" id="btnStart">▶ INICIAR SIMULACIÓN</button>
+            <button class="btn" id="btnDemo">Ver demo automática</button>
+          </div>
+          <p style="margin-top:8px;font-size:11px;color:var(--muted)">Tip: Abre la “Pantalla Externa” en otro monitor para simulación realista de centro de control.</p>
+        </div>
+
+        <!-- AVATAR CARD -->
+        <div class="avatar-wrap" id="avatarWrap" style="opacity:0;pointer-events:none">
+          <div class="avatar-card">
+            <div class="avatar-img">
+              <img id="avatarImg" src="" alt="Operario con dispositivo">
+              <div class="heatGlow" id="heatGlow"></div>
+            </div>
+            <div class="avatar-meta">
+              <h4 class="ox">OPERARIO 07 — EQUIPO TORÁCICO</h4>
+              <div class="state-pill state-ok" id="statePill"><span>●</span> <span id="stateText">SIGNOS NORMALES</span></div>
+              <div class="vitals-mini">
+                <div class="vmini" id="miniTemp"><span>Temp Corp.</span><b id="miniTempV">36.8°C</b></div>
+                <div class="vmini" id="miniHr"><span>Cardíaco</span><b id="miniHrV">78</b></div>
+                <div class="vmini" id="miniSpo2"><span>SpO₂</span><b id="miniSpo2V">97%</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="avatar-card" style="width:132px;flex:0 0 132px;flex-direction:column;align-items:stretch;gap:6px">
+            <div style="font-size:10px;letter-spacing:.8px;color:var(--muted);text-transform:uppercase">Dispositivo</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px"><span class="mono">BATERÍA</span><b class="mono" id="devBat">87%</b></div>
+            <div class="bar"><i id="devBatBar" class="ok" style="width:87%"></i></div>
+            <div style="font-size:10px;color:var(--muted);line-height:1.4">✔ Sensor temp<br>✔ Acelerómetro<br>✔ SpO₂ óptico<br>✔ HR ECG</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="scenarios">
+          <button class="scn" data-scn="normal">● NORMAL</button>
+          <button class="scn heat" data-scn="heat">🔥 CALOR EXTREMO</button>
+          <button class="scn fall" data-scn="fall">⚡ SIMULAR CAÍDA</button>
+          <button class="scn trap" data-scn="trap">🧱 ATRAPADO / CONFINADO</button>
+          <button class="scn effort" data-scn="effort">🏃 ESFUERZO FÍSICO</button>
+          <button class="btn danger" id="btnReset" style="margin-left:6px">⟲ REESTABLECER</button>
+        </div>
+        <div class="movement">
+          <span>Mover:</span>
+          <div class="keys"><div class="k" data-k="w">W</div><div class="k" data-k="a">A</div><div class="k" data-k="s">S</div><div class="k" data-k="d">D</div></div>
+          <span style="margin-left:6px">|</span>
+          <button class="btn" id="btnThermal" style="padding:6px 8px">🌡️ Térmico</button>
+          <button class="btn" id="btnNitro" style="padding:6px 8px">👁️ Visor</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: TELEMETRIA -->
+  <section class="telemetry">
+    <div class="card" style="padding:0">
+      <div class="card-hd"><h3>◉ TELEMETRÍA EN TIEMPO REAL</h3><div class="switch"><button class="on" id="swLive">EN VIVO</button><button id="swPause">PAUSA</button></div></div>
+      <div style="padding:12px;display:grid;gap:10px">
+        <div class="reportHead mono">
+          <span>REPORTE <b id="reportBig">RPT-2026-0001</b></span>
+          <span id="clockBig">09:41:03 — 27/10/2026</span>
+        </div>
+        <div class="gauges">
+          <div class="gauge" id="gTempBody"><h5>🌡️ Temp. Corporal</h5><div class="val"><span id="vTempBody">36.8</span><span class="unit">°C</span></div><div class="sub" id="sTempBody">Normal — 36.5 a 37.5°C</div><div class="bar"><i id="bTempBody" class="ok" style="width:38%"></i></div></div>
+          <div class="gauge" id="gTempAmb"><h5>🏭 Temp. Ambiente</h5><div class="val"><span id="vTempAmb">24.2</span><span class="unit">°C</span></div><div class="sub" id="sTempAmb">Nave industrial</div><div class="bar"><i id="bTempAmb" class="ok" style="width:28%"></i></div></div>
+          <div class="gauge" id="gHr"><h5>❤️ Frecuencia Cardíaca</h5><div class="val"><span id="vHr">78</span><span class="unit">BPM</span></div><div class="sub" id="sHr">Normal — 60 a 100 BPM</div><div class="bar"><i id="bHr" class="ok" style="width:42%"></i></div></div>
+          <div class="gauge" id="gSpo2"><h5>🫁 SpO₂ Oxígeno</h5><div class="val"><span id="vSpo2">97</span><span class="unit">%</span></div><div class="sub" id="sSpo2">Normal — 95 a 100%</div><div class="bar"><i id="bSpo2" class="ok" style="width:92%"></i></div></div>
+          <div class="gauge" id="gFall"><h5>⚡ Detector de Caída</h5><div class="val" style="font-size:22px"><span id="vFall">NO</span><span class="unit" id="uFall">• Estable</span></div><div class="sub" id="sFall">Acelerómetro: 1.02 g</div><div class="bar"><i id="bFall" class="ok" style="width:8%"></i></div></div>
+          <div class="gauge" id="gTrap"><h5>🧱 Atrapado / Inmovilidad</h5><div class="val" style="font-size:22px"><span id="vTrap">NO</span><span class="unit" id="uTrap">• En movimiento</span></div><div class="sub" id="sTrap">Tiempo inmóvil: 0s</div><div class="bar"><i id="bTrap" class="ok" style="width:5%"></i></div></div>
+        </div>
+        <div class="charts">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h5 style="font-size:11px;letter-spacing:.8px;color:var(--muted)">TENDENCIA • Últimos 45s</h5><span class="mono" style="font-size:11px;color:var(--cyan)">◉ STREAMING</span></div>
+          <canvas id="chart" height="140"></canvas>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="alert-log" id="alertLog" style="min-height:130px"></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.18);border-radius:12px;padding:10px">
+              <div style="font-size:11px;letter-spacing:.8px;color:var(--cyan);font-weight:800">🚨 SISTEMA DE ALERTAS</div>
+              <div id="alertBanner" style="margin-top:6px;background:#0e1a24;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:12px;color:var(--muted)">Sin alertas — parámetros dentro de rango normal</div>
+              <div style="display:flex;gap:6px;margin-top:8px">
+                <button class="btn danger" style="flex:1" id="btnAck">✓ Acusar recibo</button>
+                <button class="btn" style="flex:1" id="btnCall">📞 Llamar brigada</button>
+              </div>
+            </div>
+            <div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px">
+              <div style="font-size:11px;font-weight:800;letter-spacing:.6px">📋 BITÁCORA RÁPIDA</div>
+              <div class="mono" id="bitacora" style="margin-top:6px;font-size:11px;line-height:1.6;color:#b8cfe6">• 09:41:12 Sistema iniciado<br>• 09:41:12 Reporte #0001 creado<br>• 09:41:12 Operario en zona segura</div>
+              <button class="btn" style="width:100%;margin-top:8px" id="btnExport">⬇ Exportar reporte (CSV)</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" style="flex:1" id="btnShareMonitor">⧉ Sincronizar monitor externo</button>
+          <button class="btn primary" style="flex:1" id="btnTestAlert">🔔 Probar alerta</button>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="padding:12px">
+      <h3 style="font-size:11px;letter-spacing:.9px;color:var(--muted);text-transform:uppercase">Cómo funciona el juego</h3>
+      <p style="font-size:12px;line-height:1.6;color:#b9cce0;margin-top:6px">Este es un <b style="color:var(--cyan)">gemelo digital del dispositivo real</b> de la foto. El arnés mide <b>temperatura corporal/ambiental, HR, SpO₂ y caídas</b> por acelerómetro. En el juego, cada escenario estresa esas variables. Si 2 o más salen de rango, se dispara una <b style="color:var(--red)">alerta crítica</b> que verías en el centro de control — con sonido, vibración y registro con hora y número de reporte.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <span class="pill mono" style="font-size:11px">Umbral HR: 50-100</span>
+        <span class="pill mono" style="font-size:11px">SpO₂ &lt;95% alerta</span>
+        <span class="pill mono" style="font-size:11px">Temp &gt;37.8°C fiebre</span>
+        <span class="pill mono" style="font-size:11px">Caída = alerta inmediata</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer style="max-width:1540px;margin:0 auto;padding:6px 14px 18px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+  <span>© 2026 GUARDIAN MR • Proyecto académico Modelo3D • Simulación sin hardware real — listo para conectar BLE/WiFi a dispositivo físico</span>
+  <span class="mono">Hecho para <b style="color:var(--cyan)">zharpinzon/Modelo3D</b> • Mixed Reality Safety</span>
+</footer>
+
+<div class="alertOverlay" id="alertOverlay">
+  <div class="alertBox">
+    <div class="flash"></div>
+    <div style="font-size:12px;letter-spacing:2px;color:var(--red);font-weight:800">⚠️ ALERTA CRÍTICA — CENTRAL NOTIFICADA</div>
+    <h2 id="alertTitle">¡CAÍDA DETECTADA!</h2>
+    <p id="alertDesc">Aceleración 3.2g • Posible pérdida de consciencia • Enviando brigada</p>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:14px">
+      <button class="btn danger" id="btnOverlayAck">✓ ENTENDIDO</button>
+      <button class="btn primary" id="btnOverlayCall">📡 ENVIAR RESCATE</button>
+    </div>
+    <div class="mono" style="margin-top:10px;font-size:11px;color:#ffabb2" id="alertMeta">RPT-2026-0001 • 09:41:45 • Operario #07 • Zona: Andamio B</div>
+  </div>
+</div>
+
+<script>
+const $ = s=>document.querySelector(s);
+const $$ = s=>[...document.querySelectorAll(s)];
+
+// Avatar image inline crop from uploaded? Use data URL placeholder via canvas generation? Use uploaded path
+// We'll embed as base64 by fetching /tmp image if available, fallback to generated placeholder
+const avatarSrcFallback = 'https://images.unsplash.com/photo-1598550476439-6847785fcea6?q=80&w=400&auto=format&fit=crop';
+let avatarImgEl = $('#avatarImg');
+avatarImgEl.src = avatarSrcFallback;
+// Try to load uploaded image via same-origin if copied to workspace
+fetch('Captura%20de%20pantalla%202026-10-27%20094101.png').then(r=>{ if(r.ok) avatarImgEl.src='Captura%20de%20pantalla%202026-10-27%20094101.png'; }).catch(()=>{});
+
+// Environment images
+const envs = {
+  normal: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1200&auto=format&fit=crop',
+  heat: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=1200&auto=format&fit=crop',
+  fall: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop',
+  trap: 'https://images.unsplash.com/photo-1513828583688-c52646db42da?q=80&w=1200&auto=format&fit=crop',
+  effort: 'https://images.unsplash.com/photo-1444723121867-7a241cacace9?q=80&w=1200&auto=format&fit=crop'
+};
+function setEnv(name){
+  const el=$('#envImage');
+  el.style.backgroundImage = `url('${envs[name]||envs.normal}')`;
+  const labels={normal:'NAVE INDUSTRIAL • 24°C',heat:'ZONA HORNO • 52°C 🔥',fall:'ANDAMIO NIVEL 4 • 18m',trap:'TANQUE CONFINADO • BAJO O₂',effort:'MANIOBRA PESADA • ESFUERZO'};
+  $('#envName').textContent = labels[name]||labels.normal;
+  if(name==='heat'){ $('#particles').innerHTML=''; for(let i=0;i<18;i++){ let d=document.createElement('div');d.className='p';d.style.left=Math.random()*100+'%';d.style.animationDuration=(2+Math.random()*3)+'s';d.style.animationDelay=Math.random()*2+'s';d.style.opacity=.6+Math.random()*.4;$('#particles').appendChild(d);} }
+  else $('#particles').innerHTML='';
+  $('#trappedFx').classList.toggle('on', name==='trap');
+}
+setEnv('normal');
+
+// Canvas subtle scan
+const cvs=$('#envCanvas'), ctx=cvs.getContext('2d');
+function resize(){ cvs.width=cvs.clientWidth*devicePixelRatio; cvs.height=cvs.clientHeight*devicePixelRatio; }
+addEventListener('resize',resize); resize();
+let t=0;
+function loop(){
+  t+=0.016;
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  // subtle moving line
+  ctx.strokeStyle='rgba(0,229,255,0.08)';
+  ctx.lineWidth=1;
+  for(let i=0;i<3;i++){
+    let y=(t*40 + i*120)%cvs.height;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(cvs.width,y); ctx.stroke();
+  }
+  requestAnimationFrame(loop);
+}
+loop();
+
+// Simulation engine
+let reportNum=1, reportId=`RPT-2026-${String(reportNum).padStart(4,'0')}`;
+let running=false, mode='normal', thermalOn=false;
+let soundOn=true;
+let state={
+  tempBody:36.8, tempAmb:24.2, hr:78, spo2:97, fall:false, trapped:false, trapTime:0, moving:false, accel:1.02, battery:87,
+  pos:{x:12.4,y:3.2,z:0.9}
+};
+let history={hr:[],spo2:[],temp:[],time:[]}, histMax=45;
+let alerts=[], lastAlertAt=0;
+let ticker=null;
+let posDir={x:0,y:0};
+
+function nowStr(){ return new Date().toLocaleTimeString('es-CO',{hour12:false}) }
+function dateStr(){ return new Date().toLocaleDateString('es-CO') }
+function updateClocks(){
+  $('#clock').textContent = `${nowStr()} • ${dateStr()}`;
+  $('#clockBig').textContent = `${nowStr()} — ${dateStr()}`;
+  $('#reportId').textContent = reportId;
+  $('#reportBig').textContent = reportId;
+  $('#alertMeta').textContent = `${reportId} • ${nowStr()} • Operario #07 • Zona: ${$('#envName').textContent}`;
+}
+setInterval(updateClocks,1000); updateClocks();
+
+function drift(){
+  let target={};
+  const jitter = (a)=> (Math.random()-0.5)*a;
+  if(mode==='normal'){
+    target.tempBody=36.8; target.tempAmb=24.2; target.hr=78; target.spo2=97;
+  } else if(mode==='heat'){
+    target.tempBody=38.9; target.tempAmb=51; target.hr=142; target.spo2=94;
+  } else if(mode==='effort'){
+    target.tempBody=37.9; target.tempAmb=26; target.hr=138; target.spo2=95;
+  } else if(mode==='trap'){
+    target.tempBody=37.4; target.tempAmb=31; target.hr=118; target.spo2=86;
+  } else if(mode==='fall'){
+    // fall is impulse handled separately
+    target.tempBody=36.9; target.tempAmb=24; target.hr=128; target.spo2=93;
+  }
+  // smooth approach
+  const lerp=(a,b,s)=>a+(b-a)*s;
+  const speed = mode==='heat'?0.03: mode==='trap'?0.02:0.04;
+  state.tempBody = lerp(state.tempBody, target.tempBody, speed) + jitter(0.06);
+  state.tempAmb = lerp(state.tempAmb, target.tempAmb, speed) + jitter(0.2);
+  state.hr = lerp(state.hr, target.hr, speed*1.2) + jitter(2);
+  state.spo2 = lerp(state.spo2, target.spo2, speed) + jitter(0.5);
+  if(state.moving){ state.hr += 6 + Math.random()*4; state.tempBody+=0.04; }
+  // clamp
+  state.hr=Math.max(42,Math.min(185,state.hr));
+  state.spo2=Math.max(81,Math.min(99,state.spo2));
+  state.tempBody=Math.max(36.0,Math.min(40.5,state.tempBody+(thermalOn?0.15:0)));
+  state.tempAmb=Math.max(18,Math.min(58,state.tempAmb));
+  // trap timer
+  if(mode==='trap'){ state.trapTime+=0.1; state.spo2 -= 0.04; } else state.trapTime=Math.max(0,state.trapTime-0.2);
+  if(state.trapTime>8) state.trapped=true; else if(mode!=='trap') state.trapped=false;
+  // battery drain
+  state.battery=Math.max(0,state.battery-0.002);
+  // accel
+  if(state.fall){ state.accel= 2.2 + Math.random()*1.2; if(Math.random()<0.08) state.fall=false; }
+  else state.accel= 0.98 + Math.random()*0.08 + (state.moving?0.15:0);
+  // position drift
+  state.pos.x += posDir.x*0.04 + jitter(0.01);
+  state.pos.z += posDir.y*0.04;
+}
+
+function evaluate(){
+  let issues=[];
+  let level='ok';
+  // temp body
+  if(state.tempBody>=39){ level='crit'; issues.push({type:'crit',title:'HIPERTERMIA CRÍTICA',desc:`Temp corporal ${state.tempBody.toFixed(1)}°C — riesgo golpe de calor`}); }
+  else if(state.tempBody>=37.8){ level=level==='crit'?'crit':'warn'; issues.push({type:'warn',title:'Temperatura elevada',desc:`${state.tempBody.toFixed(1)}°C — hidratar y pausar`}); }
+  if(state.tempAmb>=45){ level='crit'; issues.push({type:'crit',title:'AMBIENTE EXTREMO',desc:`${state.tempAmb.toFixed(1)}°C — evacuación recomendada`}); }
+  else if(state.tempAmb>=35){ level=level==='crit'?'crit': 'warn'; issues.push({type:'warn',title:'Calor ambiental alto',desc:`${state.tempAmb.toFixed(1)}°C en zona de trabajo`}); }
+  // hr
+  if(state.hr>145 || state.hr<48){ level='crit'; issues.push({type:'crit',title: state.hr>145?'TAQUICARDIA SEVERA':'BRADICARDIA SEVERA',desc:`FC ${Math.round(state.hr)} BPM fuera de rango seguro`}); }
+  else if(state.hr>110 || state.hr<55){ level=level==='crit'?'crit':'warn'; issues.push({type:'warn',title:'Frecuencia cardíaca alterada',desc:`${Math.round(state.hr)} BPM — monitorizar`}); }
+  // spo2
+  if(state.spo2<90){ level='crit'; issues.push({type:'crit',title:'HIPOXEMIA CRÍTICA',desc:`SpO₂ ${Math.round(state.spo2)}% — oxígeno crítico`}); }
+  else if(state.spo2<95){ level=level==='crit'?'crit':'warn'; issues.push({type:'warn',title:'Oxigenación baja',desc:`SpO₂ ${Math.round(state.spo2)}% — revisar ventilación`}); }
+  // fall
+  if(state.fall || state.accel>2){ level='crit'; issues.push({type:'crit',title:'¡CAÍDA DETECTADA!',desc:`Aceleración ${state.accel.toFixed(2)}g — posible impacto`}); }
+  // trapped
+  if(state.trapped || state.trapTime>10){ level='crit'; issues.push({type:'crit',title:'ATRAPADO / INMOVILIDAD',desc:`Inmóvil ${state.trapTime.toFixed(0)}s en espacio confinado`}); }
+
+  // overall pill
+  let pill=$('#statePill'), txt=$('#stateText'), hudState=$('#hudState');
+  pill.className='state-pill '+(level==='crit'?'state-crit':level==='warn'?'state-warn':'state-ok');
+  if(level==='crit'){ txt.textContent='ESTADO CRÍTICO'; hudState.textContent='CRÍTICO'; hudState.style.color='var(--red)'; }
+  else if(level==='warn'){ txt.textContent='ADVERTENCIA'; hudState.textContent='ALERTA'; hudState.style.color='var(--amber)'; }
+  else { txt.textContent='SIGNOS NORMALES'; hudState.textContent='ESTABLE'; hudState.style.color='var(--lime)'; }
+
+  // alert banner + overlay
+  if(issues.length){
+    let crits=issues.filter(i=>i.type==='crit');
+    if(crits.length && Date.now()-lastAlertAt>3500){
+      lastAlertAt=Date.now();
+      triggerAlert(crits[0]);
+      logAlert(crits[0]);
+      // also broadcast
+      broadcast({type:'alert', data:crits[0], state, reportId, time:nowStr()});
+    }
+    $('#alertBanner').innerHTML = issues.map(i=> `<div style="color:${i.type==='crit'?'#ff6b7a':'#ffce4d'};font-weight:800">${i.type==='crit'?'●':'▲'} ${i.title}</div><div style="font-size:11px;color:#cfe0f0">${i.desc}</div>`).join('<div style="height:6px"></div>');
+    $('#alertBanner').style.borderColor = level==='crit'?'rgba(255,37,58,.5)':'rgba(255,174,0,.4)';
+    $('#alertBanner').style.background = level==='crit'?'rgba(255,37,58,.10)':'rgba(255,174,0,.08)';
+  } else {
+    $('#alertBanner').textContent='Sin alertas — parámetros dentro de rango normal';
+    $('#alertBanner').style.borderColor='var(--line)'; $('#alertBanner').style.background='#0e1a24';
+  }
+}
+
+function triggerAlert(issue){
+  $('#alertTitle').textContent=issue.title;
+  $('#alertDesc').textContent=issue.desc;
+  $('#alertOverlay').classList.add('show');
+  $('#led').style.background='var(--red)'; $('#led').style.boxShadow='0 0 10px var(--red)';
+  if(soundOn) playSiren();
+  if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
+  // flash
+  document.body.style.outline='3px solid var(--red)';
+  setTimeout(()=>document.body.style.outline='none',900);
+}
+
+function logAlert(issue){
+  const el=document.createElement('div');
+  el.className='alert-item '+(issue.type==='crit'?'crit':'warn');
+  el.innerHTML=`<span style="font-size:14px">${issue.type==='crit'?'🚨':'⚠️'}</span><div><b>${issue.title}</b><div class="logtime">${nowStr()} • ${reportId}</div><div style="font-size:11px;color:#d8e6f5">${issue.desc}</div></div>`;
+  $('#alertLog').prepend(el);
+  $('#bitacora').innerHTML = `• ${nowStr()} <b style="color:${issue.type==='crit'?'var(--red)':'var(--amber)'}">${issue.title}</b> — ${issue.desc}<br>` + $('#bitacora').innerHTML;
+  if($('#alertLog').children.length>12) $('#alertLog').lastElementChild.remove();
+}
+
+// Rendering
+function render(){
+  // gauges
+  function setGauge(id,val,thrWarn,thrCrit,unit,invert){
+    let g=$(id), s=g?g.querySelector('.sub'):null;
+    // value set outside
+  }
+  $('#vTempBody').textContent=state.tempBody.toFixed(1);
+  $('#vTempAmb').textContent=state.tempAmb.toFixed(1);
+  $('#vHr').textContent=Math.round(state.hr);
+  $('#vSpo2').textContent=Math.round(state.spo2);
+  $('#vFall').textContent= state.fall||state.accel>1.9 ? 'SÍ':'NO';
+  $('#uFall').textContent= state.fall? '• ¡Impacto!':'• Estable';
+  $('#sFall').textContent=`Acelerómetro: ${state.accel.toFixed(2)} g`;
+  $('#vTrap').textContent= state.trapped?'SÍ':'NO';
+  $('#uTrap').textContent= state.trapped?'• ¡Inmóvil!': state.moving?'• En movimiento':'• En pausa';
+  $('#sTrap').textContent=`Tiempo inmóvil: ${state.trapTime.toFixed(0)}s`;
+  $('#miniTempV').textContent=state.tempBody.toFixed(1)+'°C';
+  $('#miniHrV').textContent=Math.round(state.hr);
+  $('#miniSpo2V').textContent=Math.round(state.spo2)+'%';
+  $('#hudTempAmb').textContent=state.tempAmb.toFixed(1)+'°C';
+  $('#hudHr').textContent=Math.round(state.hr)+' BPM';
+  $('#hudSpo2').textContent=Math.round(state.spo2)+'%';
+  $('#hudFall').textContent= state.fall?'SÍ':'NO';
+  $('#hudFall').style.color= state.fall?'var(--red)':'var(--lime)';
+  $('#hudCoords').textContent=`X: ${state.pos.x.toFixed(1)}m • Y: ${state.pos.y.toFixed(1)}m • Z: ${state.pos.z.toFixed(1)}m`;
+  $('#batteryHud').textContent=`◧ ${Math.round(state.battery)}%`;
+  $('#devBat').textContent=Math.round(state.battery)+'%';
+  $('#devBatBar').style.width=Math.round(state.battery)+'%';
+  // color logic for gauges
+  applyGauge('#gTempBody','bTempBody',state.tempBody,37.8,39);
+  applyGauge('#gTempAmb','bTempAmb',state.tempAmb,35,45);
+  applyGauge('#gHr','bHr',state.hr,100,135,true);
+  applyGauge('#gSpo2','bSpo2',state.spo2,95,90,true,true);
+  applyGauge('#gFall','bFall',state.accel,1.5,1.9);
+  applyGauge('#gTrap','bTrap',state.trapTime,4,9);
+  // bars hud
+  $('#barHr').style.width=Math.min(100, Math.round((state.hr-50)/80*100))+'%';
+  $('#barHr').className= state.hr>130?'crit': state.hr>100?'warn':'ok';
+  $('#barSpo2').style.width=Math.round(state.spo2)+'%';
+  $('#barSpo2').className= state.spo2<90?'crit': state.spo2<95?'warn':'ok';
+  // heat glow
+  let hg=$('#heatGlow');
+  if(state.tempBody>37.5 || state.tempAmb>35){
+    let intensity=Math.min(1, (state.tempBody-37.2)/1.5 + (state.tempAmb-35)/20);
+    hg.style.opacity=String(intensity*0.55);
+    hg.style.background=`radial-gradient(400px 300px at 30% 30%, rgba(255,80,0,${0.35*intensity}), transparent 70%)`;
+  } else hg.style.opacity='0';
+  // trapped dust already
+  // mini crit
+  toggleMiniCrit('#miniTemp', state.tempBody>=37.8);
+  toggleMiniCrit('#miniHr', state.hr>110 || state.hr<55);
+  toggleMiniCrit('#miniSpo2', state.spo2<95);
+  // chart history
+  history.hr.push(Math.round(state.hr)); history.spo2.push(Math.round(state.spo2)); history.temp.push(parseFloat(state.tempBody.toFixed(1))); history.time.push(nowStr());
+  if(history.hr.length>histMax){ history.hr.shift(); history.spo2.shift(); history.temp.shift(); history.time.shift(); }
+  updateChart();
+  // broadcast
+  broadcast({type:'telemetry', state, reportId, time:nowStr(), date:dateStr()});
+}
+
+function toggleMiniCrit(sel, cond){
+  let el=$(sel); el.classList.toggle('crit',cond); el.style.borderColor=cond?'rgba(255,37,58,.4)':'rgba(255,255,255,.06)'; el.style.background=cond?'rgba(255,37,58,.10)':'rgba(255,255,255,.04)';
+}
+function applyGauge(cardSel, barId, val, warn, crit, isLowBad=false, invert=false){
+  let card=$(cardSel), bar=$('#'+barId);
+  let level='ok';
+  if(!invert){
+    if(val>=crit) level='crit'; else if(val>=warn) level='warn';
+  } else {
+    // low bad: val < warn => warn, val < crit => crit (crit < warn)
+    if(val<=crit) level='crit'; else if(val<=warn) level='warn';
+  }
+  card.classList.toggle('crit',level==='crit'); card.classList.toggle('warn',level==='warn');
+  bar.className=level;
+  // width
+  let pct;
+  if(cardSel==='#gHr') pct=Math.min(100,Math.max(5, (val-45)/100*100));
+  else if(cardSel==='#gSpo2') pct=val;
+  else if(cardSel==='#gTempBody') pct=Math.max(5,Math.min(100,(val-36)/4*100));
+  else if(cardSel==='#gTempAmb') pct=Math.max(5,Math.min(100,(val-18)/40*100));
+  else if(cardSel==='#gFall') pct=Math.min(100,val/3*100);
+  else if(cardSel==='#gTrap') pct=Math.min(100,val/12*100);
+  else pct=50;
+  bar.style.width=pct+'%';
+  let subs={
+    '#gTempBody': level==='crit'?'¡Hipertermia!': level==='warn'?'Elevada — pausar': 'Normal — 36.5 a 37.5°C',
+    '#gTempAmb': level==='crit'?'Evacuar zona': level==='warn'?'Usar EPP térmico':'Nave industrial',
+    '#gHr': level==='crit'?'¡Fuera de rango!': level==='warn'?'Taquicardia leve':'Normal — 60 a 100 BPM',
+    '#gSpo2': level==='crit'?'¡Oxígeno crítico!': level==='warn'?'Bajo — ventilar':'Normal — 95 a 100%',
+    '#gFall': level==='crit'?'¡CAÍDA!':'Estable',
+    '#gTrap': level==='crit'?'¡Atrapado!':'Vigilancia inmovilidad'
+  };
+  let subEl=card.querySelector('.sub'); if(subEl) subEl.textContent=subs[cardSel];
+}
+
+// Chart.js
+let chart;
+function initChart(){
+  const ctx=$('#chart').getContext('2d');
+  chart=new Chart(ctx,{
+    type:'line',
+    data:{labels:Array(45).fill(''), datasets:[
+      {label:'FC', data:[], borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,.12)', tension:.4, pointRadius:0, borderWidth:2},
+      {label:'SpO₂', data:[], borderColor:'#a8ff38', backgroundColor:'rgba(168,255,56,.12)', tension:.4, pointRadius:0, borderWidth:2},
+      {label:'Temp', data:[], borderColor:'#ffae00', backgroundColor:'rgba(255,174,0,.12)', tension:.4, pointRadius:0, borderWidth:2, yAxisID:'y1'}
+    ]},
+    options:{
+      animation:false, responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      scales:{
+        x:{display:false},
+        y:{min:40,max:160, grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#7e96ad', font:{size:9}}},
+        y1:{position:'right', min:35,max:41, grid:{display:false}, ticks:{color:'#ffae00', font:{size:9}}}
+      },
+      plugins:{legend:{labels:{color:'#cfe3ff', boxWidth:12, font:{size:10}}}}
+    }
+  });
+}
+function updateChart(){
+  if(!chart) return;
+  chart.data.datasets[0].data=[...history.hr];
+  chart.data.datasets[1].data=[...history.spo2];
+  chart.data.datasets[2].data=[...history.temp];
+  chart.update('none');
+}
+initChart();
+
+// Broadcast channel for external monitor
+let bc;
+try{ bc=new BroadcastChannel('guardian_mr'); }catch(e){ bc=null; }
+function broadcast(msg){
+  if(bc) bc.postMessage(msg);
+  try{ localStorage.setItem('guardian_mr_last', JSON.stringify({...msg, _ts:Date.now()})); }catch{}
+}
+
+// Main tick
+function start(){
+  if(running) return;
+  running=true;
+  $('#tuto').style.display='none';
+  $('#avatarWrap').style.opacity='1'; $('#avatarWrap').style.pointerEvents='auto';
+  reportId=`RPT-2026-${String(reportNum).padStart(4,'0')}`;
+  ticker=setInterval(()=>{ drift(); evaluate(); render(); },110);
+  // initial log
+  logSystem('Simulación iniciada — arnés GUARDIAN activo');
+}
+function logSystem(msg){
+  const el=document.createElement('div');
+  el.className='alert-item';
+  el.innerHTML=`<span>ℹ️</span><div><b>Sistema</b><div class="logtime">${nowStr()} • ${reportId}</div><div style="font-size:11px">${msg}</div></div>`;
+  $('#alertLog').prepend(el);
+}
+
+// Controls
+$$('.scn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    $$('.scn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    let scn=b.dataset.scn;
+    mode=scn;
+    setEnv(scn==='normal'?'normal':scn);
+    if(scn==='fall'){
+      // impulse
+      state.fall=true; state.accel=3.1; state.trapTime=4;
+      $('#fallFlash').classList.remove('on'); void $('#fallFlash').offsetWidth; $('#fallFlash').classList.add('on');
+      logSystem('Evento manual: simulación de CAÍDA');
+      setTimeout(()=>{ state.fall=false; },1200);
+      // revert to normal after
+      setTimeout(()=>{ if(mode==='fall'){ mode='normal'; setEnv('normal'); $$('.scn').forEach(x=>x.classList.remove('active')); $$('.scn').find(x=>x.dataset.scn==='normal').classList.add('active'); } },4000);
+    } else if(scn==='heat'){ logSystem('Evento: zona de calor extremo — temperatura en ascenso'); }
+    else if(scn==='trap'){ logSystem('Evento: espacio confinado — oxígeno descendiendo'); state.trapTime=0; state.trapped=false; }
+    else if(scn==='effort'){ logSystem('Evento: esfuerzo físico sostenido'); }
+    else logSystem('Retorno a condiciones normales');
+    if(!running) start();
+  });
+});
+$('#btnReset').addEventListener('click',()=>{
+  mode='normal'; setEnv('normal'); state={tempBody:36.8,tempAmb:24.2,hr:78,spo2:97,fall:false,trapped:false,trapTime:0,moving:false,accel:1.02,battery:state.battery,pos:{x:12.4,y:3.2,z:0.9}};
+  $$('.scn').forEach(x=>x.classList.remove('active')); $$('.scn').find(x=>x.dataset.scn==='normal').classList.add('active');
+  $('#alertOverlay').classList.remove('show'); $('#led').style.background='var(--lime)'; $('#led').style.boxShadow='0 0 10px var(--lime)';
+  logSystem('Reestablecido — signos normalizados');
+  // new report
+  reportNum++; reportId=`RPT-2026-${String(reportNum).padStart(4,'0')}`; updateClocks();
+  history={hr:[],spo2:[],temp:[],time:[]};
+});
+$('#btnStart').addEventListener('click',()=>{
+  $$('.scn').find(x=>x.dataset.scn==='normal').classList.add('active');
+  start();
+});
+$('#btnDemo').addEventListener('click',()=>{
+  start(); autoDemo();
+});
+function autoDemo(){
+  const seq=[['heat',4000],['normal',3000],['effort',4000],['trap',5000],['fall',3000],['normal',4000]];
+  let i=0;
+  function next(){
+    if(i>=seq.length) return;
+    let [scn,delay]=seq[i++];
+    document.querySelector(`.scn[data-scn="${scn}"]`).click();
+    setTimeout(next,delay);
+  }
+  next();
+}
+$('#btnThermal').addEventListener('click',()=>{
+  thermalOn=!thermalOn;
+  $('#btnThermal').classList.toggle('primary',thermalOn);
+  $('#hudMode').textContent= thermalOn?'TÉRMICO ON':'TÉRMICO OFF';
+  $('#hudMode').style.color= thermalOn?'var(--amber)':'var(--cyan)';
+  logSystem(thermalOn?'Visor térmico activado':'Visor térmico desactivado');
+});
+$('#btnNitro').addEventListener('click',()=>{
+  $('#stage').classList.toggle('nitro');
+  if($('#stage').classList.contains('nitro')){ $('#envImage').style.filter='contrast(1.3) saturate(0) brightness(1.2)'; logSystem('Visor nocturno activado'); } else { $('#envImage').style.filter='contrast(1.05) saturate(1.1)'; logSystem('Visor diurno'); }
+});
+$('#btnAck').addEventListener('click',()=>{ $('#alertOverlay').classList.remove('show'); logSystem('Alerta acusada por operador'); });
+$('#btnOverlayAck').addEventListener('click',()=> $('#alertOverlay').classList.remove('show'));
+$('#btnOverlayCall').addEventListener('click',()=>{ alert('🚨 Brigada notificada — Enviando equipo a zona '+$('#envName').textContent+' ('+reportId+')'); $('#alertOverlay').classList.remove('show'); logSystem('Brigada despachada — emergencia en curso'); });
+$('#btnCall').addEventListener('click',()=>{ alert('📞 Llamada a brigada — Reporte '+reportId); logSystem('Llamada a brigada realizada'); });
+$('#btnTestAlert').addEventListener('click',()=>{
+  state.hr=148; state.spo2=89; state.tempBody=39.2; state.fall=true; state.accel=2.8;
+  setTimeout(()=>state.fall=false,1500);
+  if(!running) start();
+});
+$('#btnExport').addEventListener('click',()=>{
+  let csv='hora,reporte,tempCorporal,tempAmbiente,hr,spo2,caida,atrapado\n';
+  for(let i=0;i<history.hr.length;i++){
+    csv+=`${history.time[i]||''},${reportId},${history.temp[i]||''},${state.tempAmb.toFixed(1)},${history.hr[i]||''},${history.spo2[i]||''},${state.fall?'SI':'NO'},${state.trapped?'SI':'NO'}\n`;
+  }
+  let blob=new Blob([csv],{type:'text/csv'}), url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=reportId+'.csv'; a.click(); URL.revokeObjectURL(url);
+});
+$('#btnMonitor').addEventListener('click',()=> window.open('monitor.html','monitor','width=1100,height=780'));
+$('#btnShareMonitor').addEventListener('click',()=> window.open('monitor.html','monitor','width=1100,height=780'));
+let camOn=false;
+$('#btnCam').addEventListener('click',async()=>{
+  if(!camOn){
+    try{
+      let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      $('#cam').srcObject=stream; $('#cam').classList.add('on'); camOn=true; $('#btnCam').textContent='⏹ Desactivar cámara'; logSystem('Passthrough MR: cámara activada');
+    }catch(e){ alert('No se pudo acceder a la cámara: '+e.message); }
+  } else {
+    $('#cam').srcObject=null; $('#cam').classList.remove('on'); camOn=false; $('#btnCam').textContent='📷 Activar Passthrough MR'; logSystem('Cámara desactivada');
+  }
+});
+$('#btnSound').addEventListener('click',()=>{ soundOn=!soundOn; $('#btnSound').textContent=soundOn?'🔊':'🔇'; });
+$$('.k').forEach(k=>{});
+let keys={};
+addEventListener('keydown',e=>{
+  if(['w','a','s','d'].includes(e.key.toLowerCase())){
+    keys[e.key.toLowerCase()]=true; updateMove();
+    let el=document.querySelector(`.k[data-k="${e.key.toLowerCase()}"]`); if(el) el.classList.add('pressed');
+    if(!running) start();
+  }
+});
+addEventListener('keyup',e=>{
+  if(['w','a','s','d'].includes(e.key.toLowerCase())){
+    keys[e.key.toLowerCase()]=false; updateMove();
+    let el=document.querySelector(`.k[data-k="${e.key.toLowerCase()}"]`); if(el) el.classList.remove('pressed');
+  }
+});
+function updateMove(){
+  posDir.x=(keys.d?1:0)-(keys.a?1:0);
+  posDir.y=(keys.s?1:0)-(keys.w?1:0);
+  state.moving= posDir.x!==0 || posDir.y!==0;
+}
+
+// Switch live/pause
+$('#swPause').addEventListener('click',()=>{
+  if(!ticker) return;
+  clearInterval(ticker); ticker=null;
+  $('#swPause').classList.add('on'); $('#swLive').classList.remove('on');
+  logSystem('Telemetría pausada');
+});
+$('#swLive').addEventListener('click',()=>{
+  if(ticker) return;
+  $('#swLive').classList.add('on'); $('#swPause').classList.remove('on');
+  ticker=setInterval(()=>{ drift(); evaluate(); render(); },110);
+  logSystem('Telemetría reanudada');
+});
+
+// Audio
+let audioCtx;
+function playSiren(){
+  try{
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    let o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type='sine'; o.frequency.value=880; g.gain.value=0.12; o.connect(g).connect(audioCtx.destination);
+    o.start(); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.7); o.stop(audioCtx.currentTime+0.71);
+    setTimeout(()=>{ let o2=audioCtx.createOscillator(), g2=audioCtx.createGain(); o2.frequency.value=660; g2.gain.value=0.12; o2.connect(g2).connect(audioCtx.destination); o2.start(); g2.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.7); o2.stop(audioCtx.currentTime+0.71); },320);
+  }catch{}
+}
+
+// init
+updateClocks(); render();
+
+// Try to copy uploaded image to workspace path if exists, fallback already set
+</script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GUARDIAN MR — Pantalla Externa • Centro de Control</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Oxanium:wght@700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#050a10;--panel:#0c1724;--line:#1a3450;--cyan:#00e5ff;--red:#ff253a;--amber:#ffae00;--lime:#a8ff38;--muted:#7e96ad}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(900px 500px at 20% 0%, #0e2a4a 0%, transparent 60%), var(--bg);color:#e6f1ff;font-family:'Space Grotesk',system-ui,sans-serif;min-height:100vh}
+.mono{font-family:'JetBrains Mono',monospace}
+.ox{font-family:'Oxanium',sans-serif}
+.top{position:sticky;top:0;z-index:10;background:rgba(5,10,16,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,229,255,.08);font-size:11px;letter-spacing:.6px}
+.led{width:10px;height:10px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);display:inline-block;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.5}}
+.grid{max-width:1400px;margin:0 auto;padding:14px;display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg, #0e1e33, #0a1420);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.hd{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.02)}
+.hd h3{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#cfe3ff}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.metric{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:12px;position:relative}
+.metric.crit{border-color:rgba(255,37,58,.6);box-shadow:0 0 16px rgba(255,37,58,.2)}
+.metric.warn{border-color:rgba(255,174,0,.5)}
+.metric h5{font-size:10px;letter-spacing:.8px;color:var(--muted);text-transform:uppercase}
+.metric .val{font-family:'Oxanium',sans-serif;font-size:36px;font-weight:800;margin-top:4px}
+.metric .unit{font-size:13px;color:var(--muted);margin-left:4px}
+.metric .note{font-size:11px;color:#9bb3c9}
+.bar{height:7px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;border-radius:999px;transition:width .3s}
+.bar .ok{background:linear-gradient(90deg,#a8ff38,#00e5ff)}
+.bar .warn{background:linear-gradient(90deg,#ffae00,#ff6a00)}
+.bar .crit{background:linear-gradient(90deg,#ff253a,#ff6a00)}
+.bigStatus{padding:14px;text-align:center}
+.bigStatus.crit{background:linear-gradient(180deg, rgba(255,37,58,.18), rgba(255,37,58,.04));border-top:1px solid rgba(255,37,58,.35)}
+.bigStatus.warn{background:linear-gradient(180deg, rgba(255,174,0,.14), transparent);border-top:1px solid rgba(255,174,0,.35)}
+.bigStatus.ok{background:linear-gradient(180deg, rgba(168,255,56,.12), transparent);border-top:1px solid rgba(168,255,56,.25)}
+.log{max-height:360px;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.item{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.2);font-size:12px}
+.item.crit{border-color:rgba(255,37,58,.45);background:rgba(255,37,58,.10)}
+.item.warn{border-color:rgba(255,174,0,.4);background:rgba(255,174,0,.08)}
+.btn{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:#0f1b28;color:#dbe8ff;font-weight:700;font-size:12px;cursor:pointer}
+.btn.primary{background:linear-gradient(135deg,#00e5ff,#0066ff);color:#00131a;border-color:transparent}
+.btn.danger{background:linear-gradient(135deg,#ff253a,#8a0a15);color:white;border-color:transparent}
+</style>
+</head>
+<body>
+<div class="top">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#00e5ff,#0066ff);display:grid;place-items:center;font-weight:800">GM</div>
+    <div>
+      <div class="ox" style="font-size:16px;letter-spacing:1px">CENTRO DE CONTROL — PANTALLA EXTERNA</div>
+      <div class="mono" style="font-size:11px;color:var(--muted)">GUARDIAN MR • Telemetría remota • Sincronizado por BroadcastChannel</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <span class="badge mono" id="clock">--:--:--</span>
+    <span class="badge mono" id="report">RPT-2026-0001</span>
+    <span class="badge" style="display:flex;gap:6px;align-items:center"><span class="led" id="led"></span> <span class="mono" id="conn">ESPERANDO DATOS…</span></span>
+    <button class="btn" onclick="window.close()">✕ Cerrar</button>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="hd"><h3>◉ Signos Vitales — Operario 07</h3><span class="badge mono" id="loc">NAVE INDUSTRIAL</span></div>
+    <div class="metrics">
+      <div class="metric" id="mTempBody"><h5>🌡️ Temp Corporal</h5><div class="val"><span id="vTempBody">--</span><span class="unit">°C</span></div><div class="note" id="nTempBody">--</div><div class="bar"><i id="bTempBody" class="ok" style="width:30%"></i></div></div>
+      <div class="metric" id="mTempAmb"><h5>🏭 Temp Ambiente</h5><div class="val"><span id="vTempAmb">--</span><span class="unit">°C</span></div><div class="note" id="nTempAmb">--</div><div class="bar"><i id="bTempAmb" class="ok" style="width:30%"></i></div></div>
+      <div class="metric" id="mHr"><h5>❤️ Frecuencia Cardíaca</h5><div class="val"><span id="vHr">--</span><span class="unit">BPM</span></div><div class="note" id="nHr">--</div><div class="bar"><i id="bHr" class="ok" style="width:30%"></i></div></div>
+      <div class="metric" id="mSpo2"><h5>🫁 SpO₂</h5><div class="val"><span id="vSpo2">--</span><span class="unit">%</span></div><div class="note" id="nSpo2">--</div><div class="bar"><i id="bSpo2" class="ok" style="width:30%"></i></div></div>
+      <div class="metric" id="mFall"><h5>⚡ Caída</h5><div class="val" style="font-size:26px"><span id="vFall">--</span> <span class="unit" id="uFall"></span></div><div class="note" id="nFall">--</div><div class="bar"><i id="bFall" class="ok" style="width:10%"></i></div></div>
+      <div class="metric" id="mTrap"><h5>🧱 Atrapado</h5><div class="val" style="font-size:26px"><span id="vTrap">--</span> <span class="unit" id="uTrap"></span></div><div class="note" id="nTrap">--</div><div class="bar"><i id="bTrap" class="ok" style="width:10%"></i></div></div>
+    </div>
+    <div class="bigStatus ok" id="bigStatus">
+      <div class="ox" style="font-size:22px" id="bigTitle">CONECTADO — ESPERANDO TELEMETRÍA</div>
+      <div class="mono" style="font-size:11px;color:var(--muted);margin-top:4px" id="bigDesc">Abre el juego principal (index.html) y pulsa INICIAR SIMULACIÓN. Esta pantalla se sincroniza automáticamente.</div>
+    </div>
+    <div style="padding:12px">
+      <canvas id="chart" height="140"></canvas>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="card">
+      <div class="hd"><h3>🚨 Alertas en vivo</h3><span class="badge mono" id="alertCount">0 alertas</span></div>
+      <div class="log" id="log"><div class="item">Sin alertas — sistema en espera</div></div>
+      <div style="padding:10px;display:flex;gap:8px"><button class="btn danger" style="flex:1" onclick="ack()">✓ Acusar recibo</button><button class="btn primary" style="flex:1" onclick="call()">📞 Despachar brigada</button></div>
+    </div>
+    <div class="card" style="padding:12px">
+      <h3 style="font-size:11px;letter-spacing:.8px;color:var(--muted);text-transform:uppercase">Instrucciones — Pantalla aparte</h3>
+      <p style="font-size:12px;line-height:1.6;color:#b9cce0;margin-top:6px">Esta es la <b style="color:var(--cyan)">pantalla externa</b> solicitada. Debe estar siempre visible para el supervisor mientras el operario juega en el visor MR. Muestra <b>temperatura (corporal y ambiente), caída, frecuencia cardíaca y SpO₂, hora y número de reporte</b> en tiempo real. Si algún valor sale de rango, la tarjeta parpadea en rojo/ámbar y se emite alerta audible.</p>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <span class="badge mono">SpO₂ &lt;95% alerta</span><span class="badge mono">FC 60-100 normal</span><span class="badge mono">Caída = crítico</span>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn" onclick="testBeep()">🔔 Probar sonido</button>
+        <button class="btn" onclick="location.reload()">⟲ Reconectar</button>
+      </div>
+    </div>
+    <div class="card" style="padding:12px">
+      <h3 style="font-size:11px;letter-spacing:.8px;color:var(--muted)">Estado del dispositivo</h3>
+      <div class="mono" style="font-size:12px;margin-top:6px;line-height:1.8">
+        Dispositivo: GUARDIAN v2.4.1 • BLE 5.2<br>
+        Batería: <b id="bat">--</b> • Señal: ●●●●<br>
+        Reporte: <b id="report2">--</b> • Hora: <b id="clock2">--</b>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+let history={hr:[],spo2:[],temp:[],labels:[]};
+let chart, bc, lastReport='RPT-2026-0001';
+
+function initChart(){
+  const ctx=$('#chart').getContext('2d');
+  chart=new Chart(ctx,{
+    type:'line',
+    data:{labels:[], datasets:[
+      {label:'FC', data:[], borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,.1)', tension:.4, pointRadius:0, borderWidth:2},
+      {label:'SpO₂', data:[], borderColor:'#a8ff38', backgroundColor:'rgba(168,255,56,.1)', tension:.4, pointRadius:0, borderWidth:2},
+      {label:'Temp', data:[], borderColor:'#ffae00', backgroundColor:'rgba(255,174,0,.1)', tension:.4, pointRadius:0, borderWidth:2, yAxisID:'y1'}
+    ]},
+    options:{animation:false, scales:{x:{display:false}, y:{min:40,max:170, grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#7e96ad', font:{size:9}}}, y1:{position:'right', min:35,max:41, grid:{display:false}, ticks:{color:'#ffae00'}}, plugins:{legend:{labels:{color:'#cfe3ff', boxWidth:12, font:{size:10}}}}}
+  });
+}
+initChart();
+
+function updateClocks(){
+  const now=new Date();
+  const t=now.toLocaleTimeString('es-CO',{hour12:false});
+  $('#clock').textContent=t; $('#clock2').textContent=t;
+}
+setInterval(updateClocks,1000); updateClocks();
+
+function handleTelemetry(msg){
+  const s=msg.state;
+  $('#conn').textContent='CONECTADO • TIEMPO REAL'; $('#led').style.background='var(--lime)'; $('#led').style.boxShadow='0 0 10px var(--lime)';
+  $('#report').textContent=msg.reportId; $('#report2').textContent=msg.reportId; $('#bat').textContent=Math.round(s.battery)+'%'; lastReport=msg.reportId;
+  $('#clock').textContent=msg.time+' • '+msg.date; $('#clock2').textContent=msg.time;
+  // values
+  $('#vTempBody').textContent=s.tempBody.toFixed(1); $('#vTempAmb').textContent=s.tempAmb.toFixed(1);
+  $('#vHr').textContent=Math.round(s.hr); $('#vSpo2').textContent=Math.round(s.spo2);
+  $('#vFall').textContent=s.fall||s.accel>1.9?'SÍ':'NO'; $('#uFall').textContent=s.fall?'• Impacto': s.accel>1.5?'• Agitación':'• Estable';
+  $('#nFall').textContent=`Accel ${s.accel.toFixed(2)} g`; $('#vTrap').textContent=s.trapped?'SÍ':'NO'; $('#uTrap').textContent=s.trapped?'• Inmóvil': s.moving?'• Movimiento':'• Pausa'; $('#nTrap').textContent=`Inmóvil ${s.trapTime.toFixed(0)}s`;
+  // status per metric
+  setMetric('mTempBody','bTempBody','nTempBody', s.tempBody, 37.8,39, false, 'Normal 36.5-37.5°C', 'Elevada', '¡Hipertermia!');
+  setMetric('mTempAmb','bTempAmb','nTempAmb', s.tempAmb, 35,45, false, 'Nave industrial', 'Calor alto', '¡Evacuar!');
+  setMetric('mHr','bHr','nHr', s.hr, 110,135, false, 'Normal 60-100', 'Taquicardia', '¡Crítico!');
+  setMetric('mSpo2','bSpo2','nSpo2', s.spo2, 95,90, true, 'Normal 95-100%', 'Bajo', '¡Hipoxemia!');
+  setMetric('mFall','bFall','nFall', s.accel, 1.5,1.9, false, 'Estable', 'Movimiento brusco', '¡Caída!');
+  setMetric('mTrap','bTrap','nTrap', s.trapTime, 4,9, false, 'En movimiento', 'Inmovilidad', '¡Atrapado!');
+  // big status
+  let crit = s.tempBody>=39 || s.tempAmb>=45 || s.hr>135 || s.hr<50 || s.spo2<90 || s.fall || s.trapped || s.accel>1.9;
+  let warn = !crit && (s.tempBody>=37.8 || s.tempAmb>=35 || s.hr>100 || s.hr<55 || s.spo2<95 || s.trapTime>4);
+  let big=$('#bigStatus'), title=$('#bigTitle'), desc=$('#bigDesc');
+  if(crit){ big.className='bigStatus crit'; title.textContent='🚨 ESTADO CRÍTICO — INTERVENCIÓN REQUERIDA'; title.style.color='#ff6b7a'; desc.textContent='Valores fuera de rango seguro. Notificando brigada automáticamente • '+msg.reportId+' • '+msg.time; beep(true); }
+  else if(warn){ big.className='bigStatus warn'; title.textContent='⚠️ ADVERTENCIA — VIGILANCIA ESTRECHA'; title.style.color='#ffae00'; desc.textContent='Uno o más parámetros en zona de alerta. Mantener contacto visual con operario.'; }
+  else { big.className='bigStatus ok'; title.textContent='✅ SIGNOS NORMALES'; title.style.color='var(--lime)'; desc.textContent='Todos los parámetros dentro de rango • Operario estable • '+msg.reportId; }
+
+  // chart
+  history.hr.push(Math.round(s.hr)); history.spo2.push(Math.round(s.spo2)); history.temp.push(parseFloat(s.tempBody.toFixed(1))); history.labels.push(msg.time);
+  if(history.hr.length>45){ history.hr.shift(); history.spo2.shift(); history.temp.shift(); history.labels.shift(); }
+  chart.data.labels=[...history.labels]; chart.data.datasets[0].data=[...history.hr]; chart.data.datasets[1].data=[...history.spo2]; chart.data.datasets[2].data=[...history.temp]; chart.update('none');
+}
+function setMetric(cardId, barId, noteId, val, warn, crit, invert, okText, warnText, critText){
+  const card=document.getElementById(cardId), bar=document.getElementById(barId), note=document.getElementById(noteId);
+  let level='ok', text=okText;
+  if(!invert){ if(val>=crit){level='crit'; text=critText;} else if(val>=warn){level='warn'; text=warnText;} }
+  else { if(val<=crit){level='crit'; text=critText;} else if(val<=warn){level='warn'; text=warnText;} }
+  card.classList.toggle('crit',level==='crit'); card.classList.toggle('warn',level==='warn');
+  bar.className=level;
+  let pct=50;
+  if(cardId==='mHr') pct=Math.min(100,Math.max(5,(val-45)/100*100));
+  else if(cardId==='mSpo2') pct=val;
+  else if(cardId==='mTempBody') pct=Math.min(100,Math.max(5,(val-36)/4*100));
+  else if(cardId==='mTempAmb') pct=Math.min(100,Math.max(5,(val-18)/40*100));
+  else if(cardId==='mFall') pct=Math.min(100,val/3*100);
+  else if(cardId==='mTrap') pct=Math.min(100,val/12*100);
+  bar.style.width=pct+'%'; note.textContent=text+' • '+ (typeof val==='number'? val.toFixed(cardId==='mTempBody'||cardId==='mTempAmb'?1:2): val);
+}
+function handleAlert(msg){
+  const it=document.createElement('div'); it.className='item '+(msg.data.type==='crit'?'crit':'warn');
+  it.innerHTML=`<b>${msg.data.title}</b> <span class="mono" style="float:right;color:var(--muted)">${msg.time} • ${msg.reportId}</span><div style="margin-top:4px;color:#d8e6f5">${msg.data.desc}</div>`;
+  $('#log').prepend(it);
+  $('#alertCount').textContent=$('#log').children.length+' alertas';
+  if(msg.data.type==='crit') beep(true);
+  if(navigator.vibrate) navigator.vibrate([200,100,200]);
+}
+
+let bcOk=false;
+try{
+  bc=new BroadcastChannel('guardian_mr');
+  bc.onmessage=e=>{
+    bcOk=true;
+    if(e.data.type==='telemetry') handleTelemetry(e.data);
+    else if(e.data.type==='alert') handleAlert(e.data);
+  };
+  $('#conn').textContent='CANAL ABIERTO • ESPERANDO JUEGO';
+}catch(e){ $('#conn').textContent='SIN BroadcastChannel — usando localStorage'; }
+
+// fallback polling localStorage
+setInterval(()=>{
+  try{
+    const raw=localStorage.getItem('guardian_mr_last');
+    if(!raw) return;
+    const msg=JSON.parse(raw);
+    if(Date.now()-msg._ts>2000) return; // stale
+    if(!bcOk){
+      if(msg.type==='telemetry') handleTelemetry(msg);
+      else if(msg.type==='alert') handleAlert(msg);
+    }
+  }catch{}
+},300);
+
+// audio
+let ac;
+function beep(crit){
+  try{
+    if(!ac) ac=new (window.AudioContext||window.webkitAudioContext)();
+    let o=ac.createOscillator(), g=ac.createGain(); o.type='square'; o.frequency.value=crit?880:620; g.gain.value=0.14; o.connect(g).connect(ac.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.35); o.stop(ac.currentTime+0.36);
+  }catch{}
+}
+function testBeep(){ beep(true); }
+function ack(){ $('#log').innerHTML='<div class="item">✓ Alerta acusada — '+new Date().toLocaleTimeString('es-CO')+' • '+lastReport+'</div>'+$('#log').innerHTML; }
+function call(){ alert('📞 Brigada despachada a ubicación del operario 07 — Reporte '+lastReport); }
+</script>
+</body>
+</html>
