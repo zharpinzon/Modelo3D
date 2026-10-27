@@ -114,9 +114,24 @@ body{background:radial-gradient(900px 500px at 20% 0%, #0e2a4a 0%, transparent 6
 
 <script>
 const $=s=>document.querySelector(s);
-let history={hr:[],spo2:[],temp:[],labels:[]};
-let chart, bc, lastReport='RPT-2026-0001';
 
+// Umbrales — idénticos a index.html y al README
+const LIMITS={
+  tempBody:{warn:37.8, crit:39},
+  tempAmb:{warn:35, crit:45},
+  hr:{warnHigh:100, critHigh:135, warnLow:55, critLow:50},
+  spo2:{warnLow:95, critLow:90},
+  accel:{warn:1.5, crit:1.9},
+  trap:{warn:4, crit:9}
+};
+
+let chart, bc;
+let lastReport='RPT-2026-0001';
+let history={hr:[],spo2:[],temp:[],labels:[]};
+let lastTelemetryTs=0, lastAlertTs=0, lastChartTs=0, alertCount=0, lastBeepAt=0;
+let hasData=false;
+
+/* ---------- Chart ---------- */
 function initChart(){
   const ctx=$('#chart').getContext('2d');
   chart=new Chart(ctx,{
@@ -126,11 +141,16 @@ function initChart(){
       {label:'SpO₂', data:[], borderColor:'#a8ff38', backgroundColor:'rgba(168,255,56,.1)', tension:.4, pointRadius:0, borderWidth:2},
       {label:'Temp', data:[], borderColor:'#ffae00', backgroundColor:'rgba(255,174,0,.1)', tension:.4, pointRadius:0, borderWidth:2, yAxisID:'y1'}
     ]},
-    options:{animation:false, scales:{x:{display:false}, y:{min:40,max:170, grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#7e96ad', font:{size:9}}}, y1:{position:'right', min:35,max:41, grid:{display:false}, ticks:{color:'#ffae00'}}, plugins:{legend:{labels:{color:'#cfe3ff', boxWidth:12, font:{size:10}}}}}
+    options:{animation:false, responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
+      scales:{x:{display:false},
+        y:{min:40,max:190, grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#7e96ad', font:{size:9}}},
+        y1:{position:'right', min:35,max:41, grid:{display:false}, ticks:{color:'#ffae00'}}},
+      plugins:{legend:{labels:{color:'#cfe3ff', boxWidth:12, font:{size:10}}}}}
   });
 }
-initChart();
+try{ initChart(); }catch(e){ console.warn('Chart.js no disponible', e); }
 
+/* ---------- Reloj ---------- */
 function updateClocks(){
   const now=new Date();
   const t=now.toLocaleTimeString('es-CO',{hour12:false});
@@ -138,96 +158,201 @@ function updateClocks(){
 }
 setInterval(updateClocks,1000); updateClocks();
 
-function handleTelemetry(msg){
-  const s=msg.state;
-  $('#conn').textContent='CONECTADO • TIEMPO REAL'; $('#led').style.background='var(--lime)'; $('#led').style.boxShadow='0 0 10px var(--lime)';
-  $('#report').textContent=msg.reportId; $('#report2').textContent=msg.reportId; $('#bat').textContent=Math.round(s.battery)+'%'; lastReport=msg.reportId;
-  $('#clock').textContent=msg.time+' • '+msg.date; $('#clock2').textContent=msg.time;
-  // values
-  $('#vTempBody').textContent=s.tempBody.toFixed(1); $('#vTempAmb').textContent=s.tempAmb.toFixed(1);
-  $('#vHr').textContent=Math.round(s.hr); $('#vSpo2').textContent=Math.round(s.spo2);
-  $('#vFall').textContent=s.fall||s.accel>1.9?'SÍ':'NO'; $('#uFall').textContent=s.fall?'• Impacto': s.accel>1.5?'• Agitación':'• Estable';
-  $('#nFall').textContent=`Accel ${s.accel.toFixed(2)} g`; $('#vTrap').textContent=s.trapped?'SÍ':'NO'; $('#uTrap').textContent=s.trapped?'• Inmóvil': s.moving?'• Movimiento':'• Pausa'; $('#nTrap').textContent=`Inmóvil ${s.trapTime.toFixed(0)}s`;
-  // status per metric
-  setMetric('mTempBody','bTempBody','nTempBody', s.tempBody, 37.8,39, false, 'Normal 36.5-37.5°C', 'Elevada', '¡Hipertermia!');
-  setMetric('mTempAmb','bTempAmb','nTempAmb', s.tempAmb, 35,45, false, 'Nave industrial', 'Calor alto', '¡Evacuar!');
-  setMetric('mHr','bHr','nHr', s.hr, 110,135, false, 'Normal 60-100', 'Taquicardia', '¡Crítico!');
-  setMetric('mSpo2','bSpo2','nSpo2', s.spo2, 95,90, true, 'Normal 95-100%', 'Bajo', '¡Hipoxemia!');
-  setMetric('mFall','bFall','nFall', s.accel, 1.5,1.9, false, 'Estable', 'Movimiento brusco', '¡Caída!');
-  setMetric('mTrap','bTrap','nTrap', s.trapTime, 4,9, false, 'En movimiento', 'Inmovilidad', '¡Atrapado!');
-  // big status
-  let crit = s.tempBody>=39 || s.tempAmb>=45 || s.hr>135 || s.hr<50 || s.spo2<90 || s.fall || s.trapped || s.accel>1.9;
-  let warn = !crit && (s.tempBody>=37.8 || s.tempAmb>=35 || s.hr>100 || s.hr<55 || s.spo2<95 || s.trapTime>4);
-  let big=$('#bigStatus'), title=$('#bigTitle'), desc=$('#bigDesc');
-  if(crit){ big.className='bigStatus crit'; title.textContent='🚨 ESTADO CRÍTICO — INTERVENCIÓN REQUERIDA'; title.style.color='#ff6b7a'; desc.textContent='Valores fuera de rango seguro. Notificando brigada automáticamente • '+msg.reportId+' • '+msg.time; beep(true); }
-  else if(warn){ big.className='bigStatus warn'; title.textContent='⚠️ ADVERTENCIA — VIGILANCIA ESTRECHA'; title.style.color='#ffae00'; desc.textContent='Uno o más parámetros en zona de alerta. Mantener contacto visual con operario.'; }
-  else { big.className='bigStatus ok'; title.textContent='✅ SIGNOS NORMALES'; title.style.color='var(--lime)'; desc.textContent='Todos los parámetros dentro de rango • Operario estable • '+msg.reportId; }
-
-  // chart
-  history.hr.push(Math.round(s.hr)); history.spo2.push(Math.round(s.spo2)); history.temp.push(parseFloat(s.tempBody.toFixed(1))); history.labels.push(msg.time);
-  if(history.hr.length>45){ history.hr.shift(); history.spo2.shift(); history.temp.shift(); history.labels.shift(); }
-  chart.data.labels=[...history.labels]; chart.data.datasets[0].data=[...history.hr]; chart.data.datasets[1].data=[...history.spo2]; chart.data.datasets[2].data=[...history.temp]; chart.update('none');
+/* ---------- Utilidades ---------- */
+function levelFor(val,lim){
+  const critHigh = lim.critHigh!==undefined ? lim.critHigh : lim.crit;
+  const warnHigh = lim.warnHigh!==undefined ? lim.warnHigh : lim.warn;
+  if(critHigh!==undefined && val>=critHigh) return 'crit';
+  if(lim.critLow!==undefined && val<=lim.critLow) return 'crit';
+  if(warnHigh!==undefined && val>=warnHigh) return 'warn';
+  if(lim.warnLow!==undefined && val<=lim.warnLow) return 'warn';
+  return 'ok';
 }
-function setMetric(cardId, barId, noteId, val, warn, crit, invert, okText, warnText, critText){
+function pctFor(cardId,val){
+  if(cardId==='mHr') return Math.min(100,Math.max(4,(val-40)/100*100));
+  if(cardId==='mSpo2') return Math.min(100,Math.max(4,val));
+  if(cardId==='mTempBody') return Math.min(100,Math.max(4,(val-36)/4*100));
+  if(cardId==='mTempAmb') return Math.min(100,Math.max(4,(val-18)/40*100));
+  if(cardId==='mFall') return Math.min(100,val/3*100);
+  if(cardId==='mTrap') return Math.min(100,val/12*100);
+  return 50;
+}
+function setMetric(cardId, barId, noteId, val, lim, okText, warnText, critText){
   const card=document.getElementById(cardId), bar=document.getElementById(barId), note=document.getElementById(noteId);
-  let level='ok', text=okText;
-  if(!invert){ if(val>=crit){level='crit'; text=critText;} else if(val>=warn){level='warn'; text=warnText;} }
-  else { if(val<=crit){level='crit'; text=critText;} else if(val<=warn){level='warn'; text=warnText;} }
-  card.classList.toggle('crit',level==='crit'); card.classList.toggle('warn',level==='warn');
+  if(!card||!bar) return 'ok';
+  const level=levelFor(val,lim);
+  card.classList.toggle('crit',level==='crit');
+  card.classList.toggle('warn',level==='warn');
   bar.className=level;
-  let pct=50;
-  if(cardId==='mHr') pct=Math.min(100,Math.max(5,(val-45)/100*100));
-  else if(cardId==='mSpo2') pct=val;
-  else if(cardId==='mTempBody') pct=Math.min(100,Math.max(5,(val-36)/4*100));
-  else if(cardId==='mTempAmb') pct=Math.min(100,Math.max(5,(val-18)/40*100));
-  else if(cardId==='mFall') pct=Math.min(100,val/3*100);
-  else if(cardId==='mTrap') pct=Math.min(100,val/12*100);
-  bar.style.width=pct+'%'; note.textContent=text+' • '+ (typeof val==='number'? val.toFixed(cardId==='mTempBody'||cardId==='mTempAmb'?1:2): val);
+  bar.style.width=pctFor(cardId,val)+'%';
+  if(note) note.textContent = level==='crit'?critText : level==='warn'?warnText : okText;
+  return level;
 }
+function setConn(ok, text){
+  $('#conn').textContent=text;
+  const led=$('#led');
+  led.style.background = ok?'var(--lime)':'var(--muted)';
+  led.style.boxShadow = ok?'0 0 10px var(--lime)':'none';
+}
+
+/* ---------- Telemetría ---------- */
+function handleTelemetry(msg){
+  if(!msg || !msg.state) return;
+  const ts=msg._ts||Date.now();
+  if(ts<=lastTelemetryTs) return;           // evita reprocesar el mismo paquete
+  lastTelemetryTs=ts; hasData=true;
+  const s=msg.state;
+
+  setConn(true,'CONECTADO • TIEMPO REAL');
+  $('#report').textContent=msg.reportId; $('#report2').textContent=msg.reportId;
+  $('#bat').textContent=Math.round(s.battery)+'%'; lastReport=msg.reportId;
+
+  $('#vTempBody').textContent=s.tempBody.toFixed(1);
+  $('#vTempAmb').textContent=s.tempAmb.toFixed(1);
+  $('#vHr').textContent=Math.round(s.hr);
+  $('#vSpo2').textContent=Math.round(s.spo2);
+  $('#vFall').textContent = (s.fall||s.accel>LIMITS.accel.crit)?'SÍ':'NO';
+  $('#uFall').textContent = s.fall?'• Impacto' : s.accel>LIMITS.accel.warn?'• Agitación':'• Estable';
+  $('#vTrap').textContent = s.trapped?'SÍ':'NO';
+  $('#uTrap').textContent = s.trapped?'• Inmóvil' : s.moving?'• Movimiento':'• Pausa';
+
+  setMetric('mTempBody','bTempBody','nTempBody', s.tempBody, LIMITS.tempBody, 'Normal 36.5-37.5°C', 'Elevada — hidratar', '¡Hipertermia!');
+  setMetric('mTempAmb','bTempAmb','nTempAmb', s.tempAmb, LIMITS.tempAmb, 'Nave industrial', 'Calor alto — EPP', '¡Evacuar zona!');
+  setMetric('mHr','bHr','nHr', s.hr, LIMITS.hr, 'Normal 60-100', 'Taquicardia/bradicardia', '¡FC crítica!');
+  setMetric('mSpo2','bSpo2','nSpo2', s.spo2, LIMITS.spo2, 'Normal 95-100%', 'Bajo — ventilar', '¡Hipoxemia!');
+  setMetric('mFall','bFall','nFall', s.accel, LIMITS.accel, 'Estable', 'Movimiento brusco', '¡Caída!');
+  setMetric('mTrap','bTrap','nTrap', s.trapTime, LIMITS.trap, 'En movimiento', 'Inmovilidad', '¡Atrapado!');
+  // notas con el valor de acelerómetro / cronómetro (después de setMetric)
+  $('#nFall').textContent = `Acelerómetro: ${s.accel.toFixed(2)} g`;
+  $('#nTrap').textContent = `Tiempo inmóvil: ${s.trapTime.toFixed(0)} s`;
+
+  const crit = s.tempBody>=LIMITS.tempBody.crit || s.tempAmb>=LIMITS.tempAmb.crit ||
+               s.hr>LIMITS.hr.critHigh || s.hr<LIMITS.hr.critLow ||
+               s.spo2<LIMITS.spo2.critLow || s.fall || s.trapped || s.accel>LIMITS.accel.crit;
+  const warn = !crit && (s.tempBody>=LIMITS.tempBody.warn || s.tempAmb>=LIMITS.tempAmb.warn ||
+               s.hr>LIMITS.hr.warnHigh || s.hr<LIMITS.hr.warnLow ||
+               s.spo2<LIMITS.spo2.warnLow || s.trapTime>LIMITS.trap.warn || s.accel>LIMITS.accel.warn);
+
+  const big=$('#bigStatus'), title=$('#bigTitle'), desc=$('#bigDesc');
+  if(crit){
+    big.className='bigStatus crit'; title.textContent='🚨 ESTADO CRÍTICO — INTERVENCIÓN REQUERIDA'; title.style.color='#ff6b7a';
+    desc.textContent='Valores fuera de rango seguro. Brigada notificada • '+msg.reportId+' • '+(msg.time||'');
+    beepThrottled(true);
+  } else if(warn){
+    big.className='bigStatus warn'; title.textContent='⚠️ ADVERTENCIA — VIGILANCIA ESTRECHA'; title.style.color='#ffae00';
+    desc.textContent='Uno o más parámetros en zona de alerta. Mantener contacto visual con el operario.';
+  } else {
+    big.className='bigStatus ok'; title.textContent='✅ SIGNOS NORMALES'; title.style.color='var(--lime)';
+    desc.textContent='Todos los parámetros dentro de rango • Operario estable • '+msg.reportId;
+  }
+
+  // Gráfica: una muestra por segundo (45 s de tendencia)
+  if(ts-lastChartTs>=900){
+    lastChartTs=ts;
+    history.hr.push(Math.round(s.hr));
+    history.spo2.push(Math.round(s.spo2));
+    history.temp.push(parseFloat(s.tempBody.toFixed(1)));
+    history.labels.push(msg.time||'');
+    if(history.hr.length>45){ ['hr','spo2','temp','labels'].forEach(k=>history[k].shift()); }
+    if(chart){
+      chart.data.labels=[...history.labels];
+      chart.data.datasets[0].data=[...history.hr];
+      chart.data.datasets[1].data=[...history.spo2];
+      chart.data.datasets[2].data=[...history.temp];
+      chart.update('none');
+    }
+  }
+}
+
+/* ---------- Alertas ---------- */
 function handleAlert(msg){
-  const it=document.createElement('div'); it.className='item '+(msg.data.type==='crit'?'crit':'warn');
-  it.innerHTML=`<b>${msg.data.title}</b> <span class="mono" style="float:right;color:var(--muted)">${msg.time} • ${msg.reportId}</span><div style="margin-top:4px;color:#d8e6f5">${msg.data.desc}</div>`;
-  $('#log').prepend(it);
-  $('#alertCount').textContent=$('#log').children.length+' alertas';
-  if(msg.data.type==='crit') beep(true);
+  if(!msg || !msg.data) return;
+  const ts=msg._ts||Date.now();
+  if(ts<=lastAlertTs) return;              // no duplicar la misma alerta
+  lastAlertTs=ts;
+  alertCount++;
+  const it=document.createElement('div');
+  it.className='item '+(msg.data.type==='crit'?'crit':'warn');
+  it.innerHTML=`<b>${msg.data.title}</b> <span class="mono" style="float:right;color:var(--muted)">${msg.time||''} • ${msg.reportId||lastReport}</span><div style="margin-top:4px;color:#d8e6f5">${msg.data.desc||''}</div>`;
+  const log=$('#log');
+  log.prepend(it);
+  while(log.children.length>25) log.lastElementChild.remove();
+  $('#alertCount').textContent=alertCount+(alertCount===1?' alerta':' alertas');
+  if(msg.data.type==='crit') beepThrottled(true);
   if(navigator.vibrate) navigator.vibrate([200,100,200]);
 }
 
+/* ---------- Sincronización ---------- */
 let bcOk=false;
 try{
   bc=new BroadcastChannel('guardian_mr');
   bc.onmessage=e=>{
     bcOk=true;
-    if(e.data.type==='telemetry') handleTelemetry(e.data);
-    else if(e.data.type==='alert') handleAlert(e.data);
+    if(e.data && e.data.type==='telemetry') handleTelemetry(e.data);
+    else if(e.data && e.data.type==='alert') handleAlert(e.data);
   };
-  $('#conn').textContent='CANAL ABIERTO • ESPERANDO JUEGO';
-}catch(e){ $('#conn').textContent='SIN BroadcastChannel — usando localStorage'; }
+  setConn(false,'CANAL ABIERTO • ESPERANDO JUEGO');
+}catch(e){ setConn(false,'SIN BroadcastChannel — usando localStorage'); }
 
-// fallback polling localStorage
+// Respaldo por localStorage: se usa siempre que el paquete sea más reciente
+// (BroadcastChannel no cruza pestañas en algunos navegadores/iframe).
 setInterval(()=>{
   try{
-    const raw=localStorage.getItem('guardian_mr_last');
-    if(!raw) return;
-    const msg=JSON.parse(raw);
-    if(Date.now()-msg._ts>2000) return; // stale
-    if(!bcOk){
-      if(msg.type==='telemetry') handleTelemetry(msg);
-      else if(msg.type==='alert') handleAlert(msg);
-    }
+    const rawT=localStorage.getItem('guardian_mr_last');
+    if(rawT){ const m=JSON.parse(rawT); if(m.type==='telemetry') handleTelemetry(m); }
+    const rawA=localStorage.getItem('guardian_mr_alert');
+    if(rawA){ const a=JSON.parse(rawA); if(a.type==='alert') handleAlert(a); }
   }catch{}
-},300);
+},500);
 
-// audio
+// Detección de pérdida de señal
+setInterval(()=>{
+  if(hasData && Date.now()-lastTelemetryTs>5000){
+    setConn(false,'SIN DATOS DEL OPERARIO');
+    $('#bigStatus').className='bigStatus warn';
+    $('#bigTitle').textContent='📡 SIN TELEMETRÍA';
+    $('#bigTitle').style.color='#ffae00';
+    $('#bigDesc').textContent='No se reciben datos del visor MR. Verifica que index.html esté abierto y la simulación iniciada.';
+    hasData=false;
+  }
+},1000);
+
+/* ---------- Audio ---------- */
 let ac;
+function unlockAudio(){
+  try{
+    if(!ac) ac=new (window.AudioContext||window.webkitAudioContext)();
+    if(ac.state==='suspended') ac.resume();
+  }catch{}
+}
+document.addEventListener('click',unlockAudio,{once:true});
+
 function beep(crit){
   try{
     if(!ac) ac=new (window.AudioContext||window.webkitAudioContext)();
-    let o=ac.createOscillator(), g=ac.createGain(); o.type='square'; o.frequency.value=crit?880:620; g.gain.value=0.14; o.connect(g).connect(ac.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.35); o.stop(ac.currentTime+0.36);
+    if(ac.state==='suspended') ac.resume();
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type='square'; o.frequency.value=crit?880:620;
+    g.gain.value=0.14; o.connect(g).connect(ac.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.35);
+    o.stop(ac.currentTime+0.36);
   }catch{}
 }
-function testBeep(){ beep(true); }
-function ack(){ $('#log').innerHTML='<div class="item">✓ Alerta acusada — '+new Date().toLocaleTimeString('es-CO')+' • '+lastReport+'</div>'+$('#log').innerHTML; }
+// La telemetría llega ~9 veces/s: la sirena se limita para no saturar el audio
+function beepThrottled(crit){
+  const now=Date.now();
+  if(now-lastBeepAt<3000) return;
+  lastBeepAt=now;
+  beep(crit);
+}
+function testBeep(){ unlockAudio(); beep(true); }
+
+/* ---------- Acciones ---------- */
+function ack(){
+  const log=$('#log');
+  log.innerHTML='<div class="item">✓ Alerta acusada — '+new Date().toLocaleTimeString('es-CO',{hour12:false})+' • '+lastReport+'</div>'+log.innerHTML;
+}
 function call(){ alert('📞 Brigada despachada a ubicación del operario 07 — Reporte '+lastReport); }
 </script>
 </body>

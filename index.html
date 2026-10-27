@@ -181,6 +181,10 @@ a{color:inherit}
 #cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:.4s}
 #cam.on{opacity:.92}
 
+/* visor nocturno */
+.visor-stage.nitro .env-image{filter:contrast(1.3) saturate(0) brightness(1.2) !important}
+.visor-stage.nitro::after{content:"";position:absolute;inset:0;background:rgba(0,255,120,.10);mix-blend-mode:screen;pointer-events:none;z-index:3}
+
 /* tutorial */
 .tuto{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(420px,88%);background:rgba(10,18,28,.96);border:1px solid rgba(0,229,255,.5);border-radius:14px;padding:16px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.6)}
 .tuto h3{font-family:'Oxanium',sans-serif;letter-spacing:.8px}
@@ -403,15 +407,14 @@ a{color:inherit}
 const $ = s=>document.querySelector(s);
 const $$ = s=>[...document.querySelectorAll(s)];
 
-// Avatar image inline crop from uploaded? Use data URL placeholder via canvas generation? Use uploaded path
-// We'll embed as base64 by fetching /tmp image if available, fallback to generated placeholder
-const avatarSrcFallback = 'https://images.unsplash.com/photo-1598550476439-6847785fcea6?q=80&w=400&auto=format&fit=crop';
-let avatarImgEl = $('#avatarImg');
-avatarImgEl.src = avatarSrcFallback;
-// Try to load uploaded image via same-origin if copied to workspace
-fetch('Captura%20de%20pantalla%202026-10-27%20094101.png').then(r=>{ if(r.ok) avatarImgEl.src='Captura%20de%20pantalla%202026-10-27%20094101.png'; }).catch(()=>{});
+// Avatar: foto real del arnés incluida en el repo (assets/dispositivo.png)
+const avatarImgEl = $('#avatarImg');
+avatarImgEl.src = 'assets/dispositivo.png';
+avatarImgEl.addEventListener('error', ()=>{
+  avatarImgEl.src='Captura%20de%20pantalla%202026-10-27%20094101.png';
+},{once:true});
 
-// Environment images
+// Environment images (con degradado de respaldo por si el CDN no carga)
 const envs = {
   normal: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1200&auto=format&fit=crop',
   heat: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=1200&auto=format&fit=crop',
@@ -419,10 +422,28 @@ const envs = {
   trap: 'https://images.unsplash.com/photo-1513828583688-c52646db42da?q=80&w=1200&auto=format&fit=crop',
   effort: 'https://images.unsplash.com/photo-1444723121867-7a241cacace9?q=80&w=1200&auto=format&fit=crop'
 };
+const envFallbacks = {
+  normal: 'linear-gradient(180deg,#0b2233,#07131c 60%,#04090d)',
+  heat: 'radial-gradient(900px 500px at 50% 80%,#7a2000,#2a0b00 70%,#0a0400)',
+  fall: 'linear-gradient(180deg,#0b1a2a 0%,#0a1420 55%,#05090f)',
+  trap: 'radial-gradient(600px 400px at 50% 60%,#141414,#050505 80%)',
+  effort: 'linear-gradient(180deg,#0b2330,#0a1a16 60%,#04090b)'
+};
+const loadedEnvImages = {};
+let currentEnv = 'normal';
 function setEnv(name){
+  const key = envs[name] ? name : 'normal';
+  currentEnv = key;
   const el=$('#envImage');
-  el.style.backgroundImage = `url('${envs[name]||envs.normal}')`;
+  el.style.backgroundImage = `${loadedEnvImages[key] ? `url('${envs[key]}'), ` : ''}${envFallbacks[key]}`;
+  if(!loadedEnvImages[key]){
+    const img = new Image();
+    img.onload = ()=>{ loadedEnvImages[key]=true; if(currentEnv===key) setEnv(key); };
+    img.onerror = ()=>{ loadedEnvImages[key]=true; };
+    img.src = envs[key];
+  }
   const labels={normal:'NAVE INDUSTRIAL • 24°C',heat:'ZONA HORNO • 52°C 🔥',fall:'ANDAMIO NIVEL 4 • 18m',trap:'TANQUE CONFINADO • BAJO O₂',effort:'MANIOBRA PESADA • ESFUERZO'};
+  name = key;
   $('#envName').textContent = labels[name]||labels.normal;
   if(name==='heat'){ $('#particles').innerHTML=''; for(let i=0;i<18;i++){ let d=document.createElement('div');d.className='p';d.style.left=Math.random()*100+'%';d.style.animationDuration=(2+Math.random()*3)+'s';d.style.animationDelay=Math.random()*2+'s';d.style.opacity=.6+Math.random()*.4;$('#particles').appendChild(d);} }
   else $('#particles').innerHTML='';
@@ -450,15 +471,24 @@ function loop(){
 loop();
 
 // Simulation engine
-let reportNum=1, reportId=`RPT-2026-${String(reportNum).padStart(4,'0')}`;
+const LIMITS = {
+  tempBody:{warn:37.8, crit:39},
+  tempAmb:{warn:35, crit:45},
+  hr:{warnHigh:100, critHigh:135, warnLow:55, critLow:50},
+  spo2:{warnLow:95, critLow:90},
+  accel:{warn:1.5, crit:1.9},
+  trap:{warn:4, crit:9}
+};
+let reportNum = Number(localStorage.getItem('guardian_mr_report')||1) || 1;
+let reportId=`RPT-2026-${String(reportNum).padStart(4,'0')}`;
 let running=false, mode='normal', thermalOn=false;
 let soundOn=true;
 let state={
   tempBody:36.8, tempAmb:24.2, hr:78, spo2:97, fall:false, trapped:false, trapTime:0, moving:false, accel:1.02, battery:87,
   pos:{x:12.4,y:3.2,z:0.9}
 };
-let history={hr:[],spo2:[],temp:[],time:[]}, histMax=45;
-let alerts=[], lastAlertAt=0;
+let history={hr:[],spo2:[],temp:[],tempAmb:[],accel:[],trap:[],time:[]}, histMax=45;
+let alerts=[], lastAlertAt=0, lastAlertSig='';
 let ticker=null;
 let posDir={x:0,y:0};
 
@@ -473,7 +503,11 @@ function updateClocks(){
 }
 setInterval(updateClocks,1000); updateClocks();
 
+let lastDriftTs=0;
 function drift(){
+  const nowTs=performance.now();
+  const dt=Math.min(0.6, lastDriftTs ? (nowTs-lastDriftTs)/1000 : 0.11);
+  lastDriftTs=nowTs;
   let target={};
   const jitter = (a)=> (Math.random()-0.5)*a;
   if(mode==='normal'){
@@ -490,22 +524,22 @@ function drift(){
   }
   // smooth approach
   const lerp=(a,b,s)=>a+(b-a)*s;
-  const speed = mode==='heat'?0.03: mode==='trap'?0.02:0.04;
+  const speed = mode==='heat'?0.06: mode==='trap'?0.03:0.05;
   state.tempBody = lerp(state.tempBody, target.tempBody, speed) + jitter(0.06);
   state.tempAmb = lerp(state.tempAmb, target.tempAmb, speed) + jitter(0.2);
   state.hr = lerp(state.hr, target.hr, speed*1.2) + jitter(2);
   state.spo2 = lerp(state.spo2, target.spo2, speed) + jitter(0.5);
   if(state.moving){ state.hr += 6 + Math.random()*4; state.tempBody+=0.04; }
-  // clamp
+  // clamp (el visor térmico es solo visual: NO altera la temperatura corporal)
   state.hr=Math.max(42,Math.min(185,state.hr));
   state.spo2=Math.max(81,Math.min(99,state.spo2));
-  state.tempBody=Math.max(36.0,Math.min(40.5,state.tempBody+(thermalOn?0.15:0)));
+  state.tempBody=Math.max(36.0,Math.min(40.5,state.tempBody));
   state.tempAmb=Math.max(18,Math.min(58,state.tempAmb));
-  // trap timer
-  if(mode==='trap'){ state.trapTime+=0.1; state.spo2 -= 0.04; } else state.trapTime=Math.max(0,state.trapTime-0.2);
-  if(state.trapTime>8) state.trapped=true; else if(mode!=='trap') state.trapped=false;
-  // battery drain
-  state.battery=Math.max(0,state.battery-0.002);
+  // trap timer — inmóvil mientras el escenario siga activo (en segundos reales)
+  if(mode==='trap'){ state.trapTime+=dt; state.spo2 -= 0.4*dt; } else state.trapTime=Math.max(0,state.trapTime-2*dt);
+  state.trapped = mode==='trap' && state.trapTime>8;
+  // battery drain (~1% cada 10 minutos de simulación)
+  state.battery=Math.max(0,state.battery-0.006*dt);
   // accel
   if(state.fall){ state.accel= 2.2 + Math.random()*1.2; if(Math.random()<0.08) state.fall=false; }
   else state.accel= 0.98 + Math.random()*0.08 + (state.moving?0.15:0);
@@ -517,43 +551,54 @@ function drift(){
 function evaluate(){
   let issues=[];
   let level='ok';
-  // temp body
-  if(state.tempBody>=39){ level='crit'; issues.push({type:'crit',title:'HIPERTERMIA CRÍTICA',desc:`Temp corporal ${state.tempBody.toFixed(1)}°C — riesgo golpe de calor`}); }
-  else if(state.tempBody>=37.8){ level=level==='crit'?'crit':'warn'; issues.push({type:'warn',title:'Temperatura elevada',desc:`${state.tempBody.toFixed(1)}°C — hidratar y pausar`}); }
-  if(state.tempAmb>=45){ level='crit'; issues.push({type:'crit',title:'AMBIENTE EXTREMO',desc:`${state.tempAmb.toFixed(1)}°C — evacuación recomendada`}); }
-  else if(state.tempAmb>=35){ level=level==='crit'?'crit': 'warn'; issues.push({type:'warn',title:'Calor ambiental alto',desc:`${state.tempAmb.toFixed(1)}°C en zona de trabajo`}); }
-  // hr
-  if(state.hr>145 || state.hr<48){ level='crit'; issues.push({type:'crit',title: state.hr>145?'TAQUICARDIA SEVERA':'BRADICARDIA SEVERA',desc:`FC ${Math.round(state.hr)} BPM fuera de rango seguro`}); }
-  else if(state.hr>110 || state.hr<55){ level=level==='crit'?'crit':'warn'; issues.push({type:'warn',title:'Frecuencia cardíaca alterada',desc:`${Math.round(state.hr)} BPM — monitorizar`}); }
+  const add=(type,title,desc)=>{ issues.push({type,title,desc}); if(type==='crit') level='crit'; else if(level!=='crit') level='warn'; };
+  // temp corporal
+  if(state.tempBody>=LIMITS.tempBody.crit) add('crit','HIPERTERMIA CRÍTICA',`Temp corporal ${state.tempBody.toFixed(1)}°C — riesgo golpe de calor`);
+  else if(state.tempBody>=LIMITS.tempBody.warn) add('warn','Temperatura elevada',`${state.tempBody.toFixed(1)}°C — hidratar y pausar`);
+  // temp ambiente
+  if(state.tempAmb>=LIMITS.tempAmb.crit) add('crit','AMBIENTE EXTREMO',`${state.tempAmb.toFixed(1)}°C — evacuación recomendada`);
+  else if(state.tempAmb>=LIMITS.tempAmb.warn) add('warn','Calor ambiental alto',`${state.tempAmb.toFixed(1)}°C en zona de trabajo`);
+  // frecuencia cardíaca (alta y baja)
+  if(state.hr>LIMITS.hr.critHigh || state.hr<LIMITS.hr.critLow) add('crit', state.hr>LIMITS.hr.critHigh?'TAQUICARDIA SEVERA':'BRADICARDIA SEVERA',`FC ${Math.round(state.hr)} BPM fuera de rango seguro`);
+  else if(state.hr>LIMITS.hr.warnHigh || state.hr<LIMITS.hr.warnLow) add('warn','Frecuencia cardíaca alterada',`${Math.round(state.hr)} BPM — monitorizar`);
   // spo2
-  if(state.spo2<90){ level='crit'; issues.push({type:'crit',title:'HIPOXEMIA CRÍTICA',desc:`SpO₂ ${Math.round(state.spo2)}% — oxígeno crítico`}); }
-  else if(state.spo2<95){ level=level==='crit'?'crit':'warn'; issues.push({type:'warn',title:'Oxigenación baja',desc:`SpO₂ ${Math.round(state.spo2)}% — revisar ventilación`}); }
-  // fall
-  if(state.fall || state.accel>2){ level='crit'; issues.push({type:'crit',title:'¡CAÍDA DETECTADA!',desc:`Aceleración ${state.accel.toFixed(2)}g — posible impacto`}); }
-  // trapped
-  if(state.trapped || state.trapTime>10){ level='crit'; issues.push({type:'crit',title:'ATRAPADO / INMOVILIDAD',desc:`Inmóvil ${state.trapTime.toFixed(0)}s en espacio confinado`}); }
+  if(state.spo2<LIMITS.spo2.critLow) add('crit','HIPOXEMIA CRÍTICA',`SpO₂ ${Math.round(state.spo2)}% — oxígeno crítico`);
+  else if(state.spo2<LIMITS.spo2.warnLow) add('warn','Oxigenación baja',`SpO₂ ${Math.round(state.spo2)}% — revisar ventilación`);
+  // caída / acelerómetro
+  if(state.fall || state.accel>LIMITS.accel.crit) add('crit','¡CAÍDA DETECTADA!',`Aceleración ${state.accel.toFixed(2)}g — posible impacto`);
+  else if(state.accel>LIMITS.accel.warn) add('warn','Movimiento brusco',`Aceleración ${state.accel.toFixed(2)}g — vigilar al operario`);
+  // atrapamiento / inmovilidad
+  if(state.trapped || state.trapTime>LIMITS.trap.crit) add('crit','ATRAPADO / INMOVILIDAD',`Inmóvil ${state.trapTime.toFixed(0)}s en espacio confinado`);
+  else if(state.trapTime>LIMITS.trap.warn) add('warn','Inmovilidad prolongada',`Sin movimiento ${state.trapTime.toFixed(0)}s — verificar estado`);
 
-  // overall pill
+  // overall pill + LED de conexión
   let pill=$('#statePill'), txt=$('#stateText'), hudState=$('#hudState');
   pill.className='state-pill '+(level==='crit'?'state-crit':level==='warn'?'state-warn':'state-ok');
   if(level==='crit'){ txt.textContent='ESTADO CRÍTICO'; hudState.textContent='CRÍTICO'; hudState.style.color='var(--red)'; }
   else if(level==='warn'){ txt.textContent='ADVERTENCIA'; hudState.textContent='ALERTA'; hudState.style.color='var(--amber)'; }
   else { txt.textContent='SIGNOS NORMALES'; hudState.textContent='ESTABLE'; hudState.style.color='var(--lime)'; }
+  const led=$('#led');
+  led.style.background = level==='crit'?'var(--red)':level==='warn'?'var(--amber)':'var(--lime)';
+  led.style.boxShadow = `0 0 10px ${level==='crit'?'var(--red)':level==='warn'?'var(--amber)':'var(--lime)'}`;
+  $('#connTxt').textContent = level==='crit' ? 'ALERTA • CENTRO NOTIFICADO' : level==='warn' ? 'VIGILANCIA • BLE 5.2' : 'CONECTADO • BLE 5.2 • 98%';
 
-  // alert banner + overlay
+  // alert banner + overlay (una alerta por cambio de estado, no cada frame)
   if(issues.length){
     let crits=issues.filter(i=>i.type==='crit');
-    if(crits.length && Date.now()-lastAlertAt>3500){
+    const sig=issues.map(i=>i.title).join('|');
+    if(crits.length && sig!==lastAlertSig && Date.now()-lastAlertAt>4000){
+      lastAlertSig=sig;
       lastAlertAt=Date.now();
       triggerAlert(crits[0]);
       logAlert(crits[0]);
       // also broadcast
       broadcast({type:'alert', data:crits[0], state, reportId, time:nowStr()});
-    }
+    } else if(!crits.length){ lastAlertSig=sig; }
     $('#alertBanner').innerHTML = issues.map(i=> `<div style="color:${i.type==='crit'?'#ff6b7a':'#ffce4d'};font-weight:800">${i.type==='crit'?'●':'▲'} ${i.title}</div><div style="font-size:11px;color:#cfe0f0">${i.desc}</div>`).join('<div style="height:6px"></div>');
     $('#alertBanner').style.borderColor = level==='crit'?'rgba(255,37,58,.5)':'rgba(255,174,0,.4)';
     $('#alertBanner').style.background = level==='crit'?'rgba(255,37,58,.10)':'rgba(255,174,0,.08)';
   } else {
+    lastAlertSig='';
     $('#alertBanner').textContent='Sin alertas — parámetros dentro de rango normal';
     $('#alertBanner').style.borderColor='var(--line)'; $('#alertBanner').style.background='#0e1a24';
   }
@@ -563,7 +608,6 @@ function triggerAlert(issue){
   $('#alertTitle').textContent=issue.title;
   $('#alertDesc').textContent=issue.desc;
   $('#alertOverlay').classList.add('show');
-  $('#led').style.background='var(--red)'; $('#led').style.boxShadow='0 0 10px var(--red)';
   if(soundOn) playSiren();
   if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
   // flash
@@ -582,11 +626,6 @@ function logAlert(issue){
 
 // Rendering
 function render(){
-  // gauges
-  function setGauge(id,val,thrWarn,thrCrit,unit,invert){
-    let g=$(id), s=g?g.querySelector('.sub'):null;
-    // value set outside
-  }
   $('#vTempBody').textContent=state.tempBody.toFixed(1);
   $('#vTempAmb').textContent=state.tempAmb.toFixed(1);
   $('#vHr').textContent=Math.round(state.hr);
@@ -609,18 +648,18 @@ function render(){
   $('#batteryHud').textContent=`◧ ${Math.round(state.battery)}%`;
   $('#devBat').textContent=Math.round(state.battery)+'%';
   $('#devBatBar').style.width=Math.round(state.battery)+'%';
-  // color logic for gauges
-  applyGauge('#gTempBody','bTempBody',state.tempBody,37.8,39);
-  applyGauge('#gTempAmb','bTempAmb',state.tempAmb,35,45);
-  applyGauge('#gHr','bHr',state.hr,100,135,true);
-  applyGauge('#gSpo2','bSpo2',state.spo2,95,90,true,true);
-  applyGauge('#gFall','bFall',state.accel,1.5,1.9);
-  applyGauge('#gTrap','bTrap',state.trapTime,4,9);
+  // color logic for gauges (mismos umbrales que la pantalla externa y el README)
+  applyGauge('#gTempBody','bTempBody',state.tempBody,LIMITS.tempBody);
+  applyGauge('#gTempAmb','bTempAmb',state.tempAmb,LIMITS.tempAmb);
+  applyGauge('#gHr','bHr',state.hr,LIMITS.hr);
+  applyGauge('#gSpo2','bSpo2',state.spo2,LIMITS.spo2);
+  applyGauge('#gFall','bFall',state.accel,LIMITS.accel);
+  applyGauge('#gTrap','bTrap',state.trapTime,LIMITS.trap);
   // bars hud
-  $('#barHr').style.width=Math.min(100, Math.round((state.hr-50)/80*100))+'%';
-  $('#barHr').className= state.hr>130?'crit': state.hr>100?'warn':'ok';
+  $('#barHr').style.width=Math.min(100, Math.max(3, Math.round((state.hr-40)/100*100)))+'%';
+  $('#barHr').className= state.hr>LIMITS.hr.critHigh||state.hr<LIMITS.hr.critLow?'crit': state.hr>LIMITS.hr.warnHigh||state.hr<LIMITS.hr.warnLow?'warn':'ok';
   $('#barSpo2').style.width=Math.round(state.spo2)+'%';
-  $('#barSpo2').className= state.spo2<90?'crit': state.spo2<95?'warn':'ok';
+  $('#barSpo2').className= state.spo2<LIMITS.spo2.critLow?'crit': state.spo2<LIMITS.spo2.warnLow?'warn':'ok';
   // heat glow
   let hg=$('#heatGlow');
   if(state.tempBody>37.5 || state.tempAmb>35){
@@ -630,34 +669,49 @@ function render(){
   } else hg.style.opacity='0';
   // trapped dust already
   // mini crit
-  toggleMiniCrit('#miniTemp', state.tempBody>=37.8);
-  toggleMiniCrit('#miniHr', state.hr>110 || state.hr<55);
-  toggleMiniCrit('#miniSpo2', state.spo2<95);
+  toggleMiniCrit('#miniTemp', state.tempBody>=LIMITS.tempBody.warn);
+  toggleMiniCrit('#miniHr', state.hr>LIMITS.hr.warnHigh || state.hr<LIMITS.hr.warnLow);
+  toggleMiniCrit('#miniSpo2', state.spo2<LIMITS.spo2.warnLow);
   // chart history
-  history.hr.push(Math.round(state.hr)); history.spo2.push(Math.round(state.spo2)); history.temp.push(parseFloat(state.tempBody.toFixed(1))); history.time.push(nowStr());
-  if(history.hr.length>histMax){ history.hr.shift(); history.spo2.shift(); history.temp.shift(); history.time.shift(); }
+  const stamp=nowStr();
+  history.hr.push(Math.round(state.hr));
+  history.spo2.push(Math.round(state.spo2));
+  history.temp.push(parseFloat(state.tempBody.toFixed(1)));
+  history.tempAmb.push(parseFloat(state.tempAmb.toFixed(1)));
+  history.accel.push(parseFloat(state.accel.toFixed(2)));
+  history.trap.push(Math.round(state.trapTime));
+  history.time.push(stamp);
+  if(history.hr.length>histMax){
+    ['hr','spo2','temp','tempAmb','accel','trap','time'].forEach(k=>history[k].shift());
+  }
   updateChart();
   // broadcast
-  broadcast({type:'telemetry', state, reportId, time:nowStr(), date:dateStr()});
+  broadcast({type:'telemetry', state, reportId, time:stamp, date:dateStr()});
 }
 
 function toggleMiniCrit(sel, cond){
   let el=$(sel); el.classList.toggle('crit',cond); el.style.borderColor=cond?'rgba(255,37,58,.4)':'rgba(255,255,255,.06)'; el.style.background=cond?'rgba(255,37,58,.10)':'rgba(255,255,255,.04)';
 }
-function applyGauge(cardSel, barId, val, warn, crit, isLowBad=false, invert=false){
+function levelFor(val, lim){
+  // lim puede ser {warn, crit} (alto es malo), {warnLow, critLow} (bajo es malo)
+  // o {warnHigh, critHigh, warnLow, critLow} (ambos extremos, p. ej. FC)
+  const critHigh = lim.critHigh!==undefined ? lim.critHigh : lim.crit;
+  const warnHigh = lim.warnHigh!==undefined ? lim.warnHigh : lim.warn;
+  if(critHigh!==undefined && val>=critHigh) return 'crit';
+  if(lim.critLow!==undefined && val<=lim.critLow) return 'crit';
+  if(warnHigh!==undefined && val>=warnHigh) return 'warn';
+  if(lim.warnLow!==undefined && val<=lim.warnLow) return 'warn';
+  return 'ok';
+}
+function applyGauge(cardSel, barId, val, lim){
   let card=$(cardSel), bar=$('#'+barId);
-  let level='ok';
-  if(!invert){
-    if(val>=crit) level='crit'; else if(val>=warn) level='warn';
-  } else {
-    // low bad: val < warn => warn, val < crit => crit (crit < warn)
-    if(val<=crit) level='crit'; else if(val<=warn) level='warn';
-  }
+  if(!card || !bar) return;
+  let level=levelFor(val,lim);
   card.classList.toggle('crit',level==='crit'); card.classList.toggle('warn',level==='warn');
   bar.className=level;
   // width
   let pct;
-  if(cardSel==='#gHr') pct=Math.min(100,Math.max(5, (val-45)/100*100));
+  if(cardSel==='#gHr') pct=Math.min(100,Math.max(5, (val-40)/100*100));
   else if(cardSel==='#gSpo2') pct=val;
   else if(cardSel==='#gTempBody') pct=Math.max(5,Math.min(100,(val-36)/4*100));
   else if(cardSel==='#gTempAmb') pct=Math.max(5,Math.min(100,(val-18)/40*100));
@@ -668,12 +722,17 @@ function applyGauge(cardSel, barId, val, warn, crit, isLowBad=false, invert=fals
   let subs={
     '#gTempBody': level==='crit'?'¡Hipertermia!': level==='warn'?'Elevada — pausar': 'Normal — 36.5 a 37.5°C',
     '#gTempAmb': level==='crit'?'Evacuar zona': level==='warn'?'Usar EPP térmico':'Nave industrial',
-    '#gHr': level==='crit'?'¡Fuera de rango!': level==='warn'?'Taquicardia leve':'Normal — 60 a 100 BPM',
+    '#gHr': level==='crit'?(val>LIMITS.hr.critHigh?'¡Taquicardia severa!':'¡Bradicardia!'): level==='warn'?(val>LIMITS.hr.warnHigh?'Taquicardia leve':'Bradicardia leve'):'Normal — 60 a 100 BPM',
     '#gSpo2': level==='crit'?'¡Oxígeno crítico!': level==='warn'?'Bajo — ventilar':'Normal — 95 a 100%',
-    '#gFall': level==='crit'?'¡CAÍDA!':'Estable',
-    '#gTrap': level==='crit'?'¡Atrapado!':'Vigilancia inmovilidad'
+    '#gFall': level==='crit'?'¡CAÍDA!': level==='warn'?'Movimiento brusco':'Estable',
+    '#gTrap': level==='crit'?'¡Atrapado!': level==='warn'?'Inmovilidad prolongada':'Vigilancia inmovilidad'
   };
-  let subEl=card.querySelector('.sub'); if(subEl) subEl.textContent=subs[cardSel];
+  let subEl=card.querySelector('.sub');
+  if(subEl){
+    if(cardSel==='#gFall') subEl.textContent=`${subs[cardSel]} • ${val.toFixed(2)} g`;
+    else if(cardSel==='#gTrap') subEl.textContent=`${subs[cardSel]} • ${val.toFixed(0)}s inmóvil`;
+    else subEl.textContent=subs[cardSel];
+  }
 }
 
 // Chart.js
@@ -682,7 +741,7 @@ function initChart(){
   const ctx=$('#chart').getContext('2d');
   chart=new Chart(ctx,{
     type:'line',
-    data:{labels:Array(45).fill(''), datasets:[
+    data:{labels:[], datasets:[
       {label:'FC', data:[], borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,.12)', tension:.4, pointRadius:0, borderWidth:2},
       {label:'SpO₂', data:[], borderColor:'#a8ff38', backgroundColor:'rgba(168,255,56,.12)', tension:.4, pointRadius:0, borderWidth:2},
       {label:'Temp', data:[], borderColor:'#ffae00', backgroundColor:'rgba(255,174,0,.12)', tension:.4, pointRadius:0, borderWidth:2, yAxisID:'y1'}
@@ -692,7 +751,7 @@ function initChart(){
       interaction:{mode:'index', intersect:false},
       scales:{
         x:{display:false},
-        y:{min:40,max:160, grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#7e96ad', font:{size:9}}},
+        y:{min:40,max:190, grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#7e96ad', font:{size:9}}},
         y1:{position:'right', min:35,max:41, grid:{display:false}, ticks:{color:'#ffae00', font:{size:9}}}
       },
       plugins:{legend:{labels:{color:'#cfe3ff', boxWidth:12, font:{size:10}}}}
@@ -701,6 +760,7 @@ function initChart(){
 }
 function updateChart(){
   if(!chart) return;
+  chart.data.labels=[...history.time];
   chart.data.datasets[0].data=[...history.hr];
   chart.data.datasets[1].data=[...history.spo2];
   chart.data.datasets[2].data=[...history.temp];
@@ -712,20 +772,32 @@ initChart();
 let bc;
 try{ bc=new BroadcastChannel('guardian_mr'); }catch(e){ bc=null; }
 function broadcast(msg){
-  if(bc) bc.postMessage(msg);
-  try{ localStorage.setItem('guardian_mr_last', JSON.stringify({...msg, _ts:Date.now()})); }catch{}
+  const payload={...msg, _ts:Date.now()};
+  if(bc) bc.postMessage(payload);
+  try{
+    // la telemetría y las alertas se guardan en claves distintas para que una
+    // no sobreescriba a la otra en el respaldo por localStorage
+    if(msg.type==='telemetry') localStorage.setItem('guardian_mr_last', JSON.stringify(payload));
+    else localStorage.setItem('guardian_mr_alert', JSON.stringify(payload));
+  }catch{}
 }
 
 // Main tick
+function startTicker(){
+  if(ticker) clearInterval(ticker);
+  ticker=setInterval(()=>{ drift(); evaluate(); render(); },110);
+}
 function start(){
-  if(running) return;
   running=true;
   $('#tuto').style.display='none';
   $('#avatarWrap').style.opacity='1'; $('#avatarWrap').style.pointerEvents='auto';
   reportId=`RPT-2026-${String(reportNum).padStart(4,'0')}`;
-  ticker=setInterval(()=>{ drift(); evaluate(); render(); },110);
-  // initial log
-  logSystem('Simulación iniciada — arnés GUARDIAN activo');
+  updateClocks();
+  if(!ticker){
+    startTicker();
+    logSystem('Simulación iniciada — arnés GUARDIAN activo');
+  }
+  unlockAudio();
 }
 function logSystem(msg){
   const el=document.createElement('div');
@@ -740,6 +812,7 @@ $$('.scn').forEach(b=>{
     $$('.scn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
     let scn=b.dataset.scn;
+    if(!demoRunning) clearDemoTimers();
     mode=scn;
     setEnv(scn==='normal'?'normal':scn);
     if(scn==='fall'){
@@ -747,9 +820,9 @@ $$('.scn').forEach(b=>{
       state.fall=true; state.accel=3.1; state.trapTime=4;
       $('#fallFlash').classList.remove('on'); void $('#fallFlash').offsetWidth; $('#fallFlash').classList.add('on');
       logSystem('Evento manual: simulación de CAÍDA');
-      setTimeout(()=>{ state.fall=false; },1200);
+      demoTimers.push(setTimeout(()=>{ state.fall=false; },1200));
       // revert to normal after
-      setTimeout(()=>{ if(mode==='fall'){ mode='normal'; setEnv('normal'); $$('.scn').forEach(x=>x.classList.remove('active')); $$('.scn').find(x=>x.dataset.scn==='normal').classList.add('active'); } },4000);
+      demoTimers.push(setTimeout(()=>{ if(mode==='fall'){ mode='normal'; setEnv('normal'); $$('.scn').forEach(x=>x.classList.remove('active')); $$('.scn').find(x=>x.dataset.scn==='normal').classList.add('active'); } },4000));
     } else if(scn==='heat'){ logSystem('Evento: zona de calor extremo — temperatura en ascenso'); }
     else if(scn==='trap'){ logSystem('Evento: espacio confinado — oxígeno descendiendo'); state.trapTime=0; state.trapped=false; }
     else if(scn==='effort'){ logSystem('Evento: esfuerzo físico sostenido'); }
@@ -758,13 +831,21 @@ $$('.scn').forEach(b=>{
   });
 });
 $('#btnReset').addEventListener('click',()=>{
-  mode='normal'; setEnv('normal'); state={tempBody:36.8,tempAmb:24.2,hr:78,spo2:97,fall:false,trapped:false,trapTime:0,moving:false,accel:1.02,battery:state.battery,pos:{x:12.4,y:3.2,z:0.9}};
+  mode='normal'; setEnv('normal');
+  state={tempBody:36.8,tempAmb:24.2,hr:78,spo2:97,fall:false,trapped:false,trapTime:0,moving:false,accel:1.02,battery:state.battery,pos:{x:12.4,y:3.2,z:0.9}};
+  keys={}; posDir={x:0,y:0}; lastDriftTs=0;
   $$('.scn').forEach(x=>x.classList.remove('active')); $$('.scn').find(x=>x.dataset.scn==='normal').classList.add('active');
-  $('#alertOverlay').classList.remove('show'); $('#led').style.background='var(--lime)'; $('#led').style.boxShadow='0 0 10px var(--lime)';
+  $$('.k').forEach(k=>k.classList.remove('pressed'));
+  clearDemoTimers();
+  $('#alertOverlay').classList.remove('show');
   logSystem('Reestablecido — signos normalizados');
-  // new report
-  reportNum++; reportId=`RPT-2026-${String(reportNum).padStart(4,'0')}`; updateClocks();
-  history={hr:[],spo2:[],temp:[],time:[]};
+  // nuevo reporte (se recuerda entre recargas)
+  reportNum++;
+  reportId=`RPT-2026-${String(reportNum).padStart(4,'0')}`;
+  try{ localStorage.setItem('guardian_mr_report', String(reportNum)); }catch{}
+  lastAlertSig='';
+  history={hr:[],spo2:[],temp:[],tempAmb:[],accel:[],trap:[],time:[]};
+  updateClocks(); render();
 });
 $('#btnStart').addEventListener('click',()=>{
   $$('.scn').find(x=>x.dataset.scn==='normal').classList.add('active');
@@ -773,14 +854,18 @@ $('#btnStart').addEventListener('click',()=>{
 $('#btnDemo').addEventListener('click',()=>{
   start(); autoDemo();
 });
+let demoTimers=[], demoRunning=false;
+function clearDemoTimers(){ demoTimers.forEach(clearTimeout); demoTimers=[]; demoRunning=false; }
 function autoDemo(){
+  clearDemoTimers();
+  demoRunning=true;
   const seq=[['heat',4000],['normal',3000],['effort',4000],['trap',5000],['fall',3000],['normal',4000]];
   let i=0;
   function next(){
-    if(i>=seq.length) return;
+    if(i>=seq.length){ demoRunning=false; return; }
     let [scn,delay]=seq[i++];
     document.querySelector(`.scn[data-scn="${scn}"]`).click();
-    setTimeout(next,delay);
+    demoTimers.push(setTimeout(next,delay));
   }
   next();
 }
@@ -789,11 +874,25 @@ $('#btnThermal').addEventListener('click',()=>{
   $('#btnThermal').classList.toggle('primary',thermalOn);
   $('#hudMode').textContent= thermalOn?'TÉRMICO ON':'TÉRMICO OFF';
   $('#hudMode').style.color= thermalOn?'var(--amber)':'var(--cyan)';
+  const img=$('#envImage');
+  if(thermalOn){
+    img.dataset.prevFilter=img.style.filter||'';
+    img.style.filter= nightOn ? 'none' : 'grayscale(1) sepia(1) hue-rotate(320deg) saturate(4) contrast(1.25)';
+    img.style.mixBlendMode='screen';
+  } else {
+    img.style.filter= nightOn ? 'contrast(1.3) saturate(0) brightness(1.2)' : (img.dataset.prevFilter||'contrast(1.05) saturate(1.1)');
+    img.style.mixBlendMode='normal';
+  }
   logSystem(thermalOn?'Visor térmico activado':'Visor térmico desactivado');
 });
+let nightOn=false;
 $('#btnNitro').addEventListener('click',()=>{
-  $('#stage').classList.toggle('nitro');
-  if($('#stage').classList.contains('nitro')){ $('#envImage').style.filter='contrast(1.3) saturate(0) brightness(1.2)'; logSystem('Visor nocturno activado'); } else { $('#envImage').style.filter='contrast(1.05) saturate(1.1)'; logSystem('Visor diurno'); }
+  nightOn=!nightOn;
+  $('#stage').classList.toggle('nitro',nightOn);
+  $('#btnNitro').classList.toggle('primary',nightOn);
+  if(thermalOn){ $('#envImage').style.filter='none'; }
+  else $('#envImage').style.filter= nightOn ? 'contrast(1.3) saturate(0) brightness(1.2)' : 'contrast(1.05) saturate(1.1)';
+  logSystem(nightOn?'Visor nocturno activado':'Visor diurno');
 });
 $('#btnAck').addEventListener('click',()=>{ $('#alertOverlay').classList.remove('show'); logSystem('Alerta acusada por operador'); });
 $('#btnOverlayAck').addEventListener('click',()=> $('#alertOverlay').classList.remove('show'));
@@ -802,15 +901,18 @@ $('#btnCall').addEventListener('click',()=>{ alert('📞 Llamada a brigada — R
 $('#btnTestAlert').addEventListener('click',()=>{
   state.hr=148; state.spo2=89; state.tempBody=39.2; state.fall=true; state.accel=2.8;
   setTimeout(()=>state.fall=false,1500);
-  if(!running) start();
+  if(!ticker){ running=true; startTicker(); }
+  evaluate(); render();
 });
 $('#btnExport').addEventListener('click',()=>{
-  let csv='hora,reporte,tempCorporal,tempAmbiente,hr,spo2,caida,atrapado\n';
-  for(let i=0;i<history.hr.length;i++){
-    csv+=`${history.time[i]||''},${reportId},${history.temp[i]||''},${state.tempAmb.toFixed(1)},${history.hr[i]||''},${history.spo2[i]||''},${state.fall?'SI':'NO'},${state.trapped?'SI':'NO'}\n`;
+  if(!history.time.length){ logSystem('Sin datos para exportar — inicia la simulación'); return; }
+  let csv='hora,reporte,tempCorporal,tempAmbiente,hr,spo2,aceleracion_g,inmovilidad_s,atrapado\n';
+  for(let i=0;i<history.time.length;i++){
+    const inm=history.trap[i]||0;
+    csv+=`${history.time[i]||''},${reportId},${history.temp[i]??''},${history.tempAmb[i]??''},${history.hr[i]??''},${history.spo2[i]??''},${history.accel[i]??''},${inm},${inm>LIMITS.trap.crit?'SI':'NO'}\n`;
   }
   let blob=new Blob([csv],{type:'text/csv'}), url=URL.createObjectURL(blob), a=document.createElement('a');
-  a.href=url; a.download=reportId+'.csv'; a.click(); URL.revokeObjectURL(url);
+  a.href=url; a.download=reportId+'.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 $('#btnMonitor').addEventListener('click',()=> window.open('monitor.html','monitor','width=1100,height=780'));
 $('#btnShareMonitor').addEventListener('click',()=> window.open('monitor.html','monitor','width=1100,height=780'));
@@ -825,8 +927,7 @@ $('#btnCam').addEventListener('click',async()=>{
     $('#cam').srcObject=null; $('#cam').classList.remove('on'); camOn=false; $('#btnCam').textContent='📷 Activar Passthrough MR'; logSystem('Cámara desactivada');
   }
 });
-$('#btnSound').addEventListener('click',()=>{ soundOn=!soundOn; $('#btnSound').textContent=soundOn?'🔊':'🔇'; });
-$$('.k').forEach(k=>{});
+$('#btnSound').addEventListener('click',()=>{ soundOn=!soundOn; $('#btnSound').textContent=soundOn?'🔊':'🔇'; if(soundOn) unlockAudio(); });
 let keys={};
 addEventListener('keydown',e=>{
   if(['w','a','s','d'].includes(e.key.toLowerCase())){
@@ -851,21 +952,29 @@ function updateMove(){
 $('#swPause').addEventListener('click',()=>{
   if(!ticker) return;
   clearInterval(ticker); ticker=null;
+  running=false;
   $('#swPause').classList.add('on'); $('#swLive').classList.remove('on');
   logSystem('Telemetría pausada');
 });
 $('#swLive').addEventListener('click',()=>{
   if(ticker) return;
   $('#swLive').classList.add('on'); $('#swPause').classList.remove('on');
-  ticker=setInterval(()=>{ drift(); evaluate(); render(); },110);
+  running=true; startTicker();
   logSystem('Telemetría reanudada');
 });
 
 // Audio
 let audioCtx;
+function unlockAudio(){
+  try{
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+  }catch{}
+}
 function playSiren(){
   try{
     if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
     let o=audioCtx.createOscillator(), g=audioCtx.createGain();
     o.type='sine'; o.frequency.value=880; g.gain.value=0.12; o.connect(g).connect(audioCtx.destination);
     o.start(); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.7); o.stop(audioCtx.currentTime+0.71);
