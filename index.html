@@ -3,989 +3,1423 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GUARDIAN MR — Merged Reality Safety System</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&family=Oxanium:wght@600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<title>TERREMOTO MR — Rescate Coordinado</title>
 <style>
 :root{
-  --bg:#0a0f14;
-  --panel:#101a23;
-  --panel2:#14202e;
-  --line:#1e3347;
-  --cyan:#00e5ff;
-  --cyan2:#00b8d4;
-  --lime:#a8ff38;
-  --amber:#ffae00;
-  --red:#ff253a;
-  --red2:#7a121b;
-  --text:#e6f1ff;
-  --muted:#7e96ad;
+  --bg:#070c12; --panel:#0d1722; --panel2:#12202f; --line:#1d3550;
+  --cyan:#00e5ff; --cyan2:#00a8c6; --lime:#a8ff38; --amber:#ffae00;
+  --red:#ff2d45; --red2:#7a1220; --violet:#9b6bff; --text:#e8f2ff; --muted:#8198b0;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Space Grotesk',system-ui,sans-serif;background:radial-gradient(1200px 600px at 30% -10%, #0f2a44 0%, transparent 60%), radial-gradient(900px 500px at 100% 0%, #0a2e2a 0%, transparent 60%), var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-a{color:inherit}
-.mono{font-family:'JetBrains Mono',monospace}
-.ox{font-family:'Oxanium',sans-serif}
-
-/* TOP BAR */
-.topbar{position:sticky;top:0;z-index:50;background:rgba(10,15,20,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:12px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#00e5ff,#0077ff);display:grid;place-items:center;box-shadow:0 6px 18px rgba(0,229,255,.35);font-weight:800;letter-spacing:.5px}
-.brand h1{font-size:18px;line-height:1;letter-spacing:1.2px}
-.brand p{font-size:11px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
-.mid{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.pill{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);padding:7px 10px;border-radius:999px;font-size:12px}
-.led{width:9px;height:9px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:pulse 1.2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
-.right-top{display:flex;align-items:center;gap:8px}
-.btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;font-size:12px;letter-spacing:.4px;display:inline-flex;align-items:center;gap:7px;transition:.2s}
-.btn:hover{border-color:#2a4e6e;transform:translateY(-1px)}
-.btn.primary{background:linear-gradient(135deg,#00e5ff,#0066ff);color:#00131a;border-color:transparent;box-shadow:0 8px 18px rgba(0,102,255,.35)}
-.btn.danger{background:linear-gradient(135deg,#ff3b30,#a50012);border-color:transparent;color:white}
-.btn.ghost{background:transparent}
+html,body{height:100%}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:radial-gradient(1200px 700px at 25% -10%,#0e2a44 0%,transparent 60%),radial-gradient(900px 600px at 100% 0%,#0a2e2a 0%,transparent 55%),var(--bg);color:var(--text);overflow:hidden}
+.mono{font-family:'Consolas','SF Mono',monospace}
+.topbar{position:sticky;top:0;z-index:60;background:rgba(7,12,18,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:9px 14px;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#ff7a3d,#ff2d45);display:grid;place-items:center;box-shadow:0 6px 18px rgba(255,45,69,.4);font-weight:800;font-size:13px;letter-spacing:.5px}
+.brand h1{font-size:16px;letter-spacing:1px;line-height:1.1}
+.brand p{font-size:10px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase}
+.mid{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pill{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:12px}
+.led{width:9px;height:9px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:pulse 1.3s infinite}
+.led.warn{background:var(--amber);box-shadow:0 0 10px var(--amber)}
+.led.crit{background:var(--red);box-shadow:0 0 12px var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;font-size:12px;letter-spacing:.4px;display:inline-flex;align-items:center;gap:7px;transition:.18s;font-family:inherit}
+.btn:hover{border-color:#2f5880;transform:translateY(-1px)}
 .btn:active{transform:translateY(0)}
-.icon{width:16px;height:16px;display:inline-block}
+.btn.primary{background:linear-gradient(135deg,#ff7a3d,#ff2d45);color:#fff;border-color:transparent;box-shadow:0 8px 18px rgba(255,45,69,.35)}
+.btn.cyan{background:linear-gradient(135deg,#00e5ff,#0066ff);color:#00131a;border-color:transparent}
+.btn.danger{background:linear-gradient(135deg,#ff2d45,#8a0a15);color:#fff;border-color:transparent}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.wrap{display:grid;grid-template-columns:1fr 360px;gap:12px;height:calc(100vh - 64px);padding:12px}
+@media(max-width:1080px){.wrap{grid-template-columns:1fr;height:auto}}
+.card{background:linear-gradient(180deg,rgba(18,32,47,.98),rgba(9,16,24,.98));border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.card-hd{padding:10px 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
+.card-hd h3{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#cfe3ff;display:flex;align-items:center;gap:8px}
+.badge{font-size:10px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:rgba(0,229,255,.08);color:var(--cyan)}
 
-/* LAYOUT */
-.wrap{max-width:1540px;margin:0 auto;padding:14px;display:grid;grid-template-columns:1.55fr .85fr;gap:14px}
-@media(max-width:1100px){.wrap{grid-template-columns:1fr}}
-.card{background:linear-gradient(180deg, rgba(20,32,46,.98), rgba(11,18,27,.98));border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.45)}
-.card-hd{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
-.card-hd h3{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#cfe3ff;display:flex;align-items:center;gap:8px}
-.badge{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:rgba(0,229,255,.08);color:var(--cyan)}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
-
-/* VISOR */
-.visor{position:relative;height:640px;display:flex;flex-direction:column;background:#060a0f}
-@media(max-width:700px){.visor{height:560px}}
-.visor-top{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid rgba(255,255,255,.06);background:linear-gradient(90deg, rgba(0,229,255,.08), transparent);font-size:11px;letter-spacing:.6px;color:#a8c0d8}
-.visor-stage{flex:1;position:relative;overflow:hidden;background:#04070b}
-#envCanvas{position:absolute;inset:0;width:100%;height:100%}
-.env-bg{position:absolute;inset:0;transition:all .6s ease}
-.env-image{position:absolute;inset:0;opacity:.9;background-size:cover;background-position:center;filter:contrast(1.05) saturate(1.1)}
-.vignette{position:absolute;inset:0;background:radial-gradient(800px 400px at 50% 30%, transparent 40%, rgba(0,0,0,.55) 85%), linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.45))}
-.scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg, rgba(0,229,255,.05) 0 1px, transparent 1px 3px);opacity:.25;pointer-events:none}
-.gridOverlay{position:absolute;inset:0;background:
-  linear-gradient(rgba(0,229,255,.07) 1px, transparent 1px),
-  linear-gradient(90deg, rgba(0,229,255,.07) 1px, transparent 1px);
-  background-size:40px 40px;opacity:.18}
-
-/* HUD CORNERS */
-.hud{position:absolute;inset:14px;pointer-events:none}
-.corner{position:absolute;width:46px;height:46px;border-color:var(--cyan);opacity:.9}
+/* MAP */
+.map-card{display:flex;flex-direction:column}
+.map-stage{position:relative;flex:1;min-height:420px;background:#050a10;overflow:hidden}
+#mrVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s;transform:scaleX(-1)}
+#mapBg{position:absolute;inset:0;background:radial-gradient(900px 500px at 50% 30%,#0a1622 0%,#04080d 80%);transition:opacity .5s}
+#mapBg::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,229,255,.04) 0 1px,transparent 1px 3px);opacity:.5}
+#gameCanvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none}
+.map-hud{position:absolute;inset:0;pointer-events:none}
+.corner{position:absolute;width:38px;height:38px;border-color:var(--cyan);opacity:.85}
 .corner::before,.corner::after{content:"";position:absolute;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
-.corner.tl{top:0;left:0;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
-.corner.tr{top:0;right:0;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan)}
-.corner.bl{bottom:0;left:0;border-bottom:2px solid var(--cyan);border-left:2px solid var(--cyan)}
-.corner.br{bottom:0;right:0;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
-.hud-center{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);display:grid;place-items:center;pointer-events:none}
-.reticle{width:88px;height:88px;border:1px solid rgba(0,229,255,.55);border-radius:50%;display:grid;place-items:center;position:relative;box-shadow:0 0 20px rgba(0,229,255,.35), inset 0 0 20px rgba(0,229,255,.15)}
-.reticle::before{content:"";width:54px;height:54px;border:1px dashed rgba(0,229,255,.4);border-radius:50%;position:absolute;animation:spin 6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.reticle-dot{width:10px;height:10px;background:var(--cyan);border-radius:50%;box-shadow:0 0 10px var(--cyan)}
-.hud-data{position:absolute;left:14px;top:14px;display:flex;flex-direction:column;gap:6px}
-.hud-chip{background:rgba(8,18,30,.82);border:1px solid rgba(0,229,255,.35);color:#cfe8ff;padding:6px 9px;border-radius:8px;font-size:11px;letter-spacing:.5px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(6px)}
-.hud-chip b{color:var(--cyan)}
-.hud-right{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
-.mini-bars{width:132px;background:rgba(8,18,30,.88);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px}
+.corner.tl{top:10px;left:10px;border-top:2px solid;border-left:2px solid}
+.corner.tr{top:10px;right:10px;border-top:2px solid;border-right:2px solid}
+.corner.bl{bottom:10px;left:10px;border-bottom:2px solid;border-left:2px solid}
+.corner.br{bottom:10px;right:10px;border-bottom:2px solid;border-right:2px solid}
+.map-tip{position:absolute;left:14px;bottom:12px;right:14px;display:flex;justify-content:space-between;gap:8px;font-size:10px;color:var(--muted);letter-spacing:.6px;pointer-events:none;flex-wrap:wrap}
+.map-tip b{color:var(--cyan)}
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);display:none;place-items:center;z-index:30}
+.overlay.show{display:grid}
+.overlay-box{background:rgba(8,14,22,.96);border:1px solid var(--line);border-radius:16px;padding:26px 30px;max-width:520px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.overlay-box h2{font-size:24px;letter-spacing:1px;margin-bottom:8px}
+.overlay-box p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:16px}
+.overlay-box .res{display:flex;justify-content:space-around;margin:14px 0;gap:12px}
+.overlay-box .res div{flex:1}
+.overlay-box .res span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.overlay-box .res b{font-size:22px;display:block;margin-top:2px}
 
-/* AVATAR PANEL */
-.avatar-wrap{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:min(560px,92%);display:flex;gap:10px;align-items:stretch;pointer-events:auto}
-.avatar-card{flex:1;background:rgba(10,18,29,.92);border:1px solid rgba(0,229,255,.35);border-radius:14px;padding:10px;display:flex;gap:10px;align-items:center;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(0,0,0,.45)}
-.avatar-img{width:92px;height:110px;border-radius:10px;overflow:hidden;background:#0b121a;border:1px solid rgba(255,255,255,.08);position:relative;flex-shrink:0}
-.avatar-img img{width:100%;height:100%;object-fit:cover;object-position:top center;filter:contrast(1.1)}
-.heatGlow{position:absolute;inset:0;opacity:0;transition:.4s;mix-blend-mode:screen}
-.avatar-meta{flex:1}
-.avatar-meta h4{font-size:13px;letter-spacing:.6px}
-.state-pill{display:inline-flex;align-items:center;gap:6px;margin-top:4px;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.5px;border:1px solid var(--line)}
-.state-ok{background:rgba(168,255,56,.12);color:var(--lime);border-color:rgba(168,255,56,.35)}
-.state-warn{background:rgba(255,174,0,.14);color:var(--amber);border-color:rgba(255,174,0,.4)}
-.state-crit{background:rgba(255,37,58,.18);color:#ff6b7a;border-color:rgba(255,37,58,.5);animation:blink .8s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.6}}
-.vitals-mini{display:flex;gap:8px;margin-top:8px}
-.vmini{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:6px;text-align:center}
-.vmini span{font-size:9px;letter-spacing:.8px;color:var(--muted);text-transform:uppercase}
-.vmini b{font-size:13px;display:block;margin-top:2px}
-.vmini.crit b{color:var(--red)}
-.vmini.warn b{color:var(--amber)}
+/* TOOLBAR */
+.map-toolbar{padding:9px 12px;background:rgba(255,255,255,.02);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.toolbar-left,.toolbar-right{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.sel-info{font-size:11px;color:var(--muted);letter-spacing:.5px}
+.sel-info b{color:var(--cyan)}
 
-/* JOYSTICK / CONTROLS BAR */
-.controls{padding:10px 12px;background:rgba(255,255,255,.02);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
-.scenarios{display:flex;flex-wrap:wrap;gap:8px}
-.scn{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#0f1b28;color:#dbe8ff;font-weight:700;font-size:11px;letter-spacing:.5px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s}
-.scn:hover{transform:translateY(-1px);border-color:#2e5a82}
-.scn.active{outline:2px solid var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px rgba(0,229,255,.45)}
-.scn.heat.active{background:linear-gradient(135deg,#ff6a00,#ff0f39);color:white}
-.scn.fall.active{background:linear-gradient(135deg,#7c3aed,#00e5ff);color:white}
-.scn.trap.active{background:linear-gradient(135deg,#1a1a1a,#ff3b30);color:white}
-.scn.effort.active{background:linear-gradient(135deg,#00c853,#00e5ff);color:#002013}
-.movement{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
-.keys{display:flex;gap:4px}
-.k{width:26px;height:26px;display:grid;place-items:center;border:1px solid var(--line);background:var(--panel2);border-radius:6px;font-weight:800;font-size:11px}
-.k.pressed{background:var(--cyan);color:#001219;border-color:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+/* DEVICE PANEL */
+.device{display:flex;flex-direction:column;gap:12px;overflow:auto;padding-right:2px}
+.device::-webkit-scrollbar{width:8px}
+.device::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+.rescat-list{display:flex;flex-direction:column;gap:8px;padding:10px}
+.rescat-card{display:flex;gap:9px;align-items:center;padding:9px 10px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.02);cursor:pointer;transition:.15s}
+.rescat-card:hover{border-color:#2f5880;background:rgba(0,229,255,.05)}
+.rescat-card.sel{border-color:var(--cyan);box-shadow:0 0 14px rgba(0,229,255,.3) inset}
+.rc-avatar{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:11px;color:#00131a;flex-shrink:0}
+.rc-main{flex:1;min-width:0}
+.rc-name{font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px}
+.rc-role{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
+.rc-vitals{display:flex;gap:5px;margin-top:5px}
+.rc-v{flex:1;min-width:0}
+.rc-v span{font-size:8px;color:var(--muted);letter-spacing:.4px}
+.rc-v b{font-size:11px;font-family:'Consolas',monospace;display:block}
+.rc-v.ok b{color:var(--lime)} .rc-v.warn b{color:var(--amber)} .rc-v.crit b{color:var(--red)}
+.rc-flag{font-size:9px;padding:2px 6px;border-radius:999px;white-space:nowrap}
+.rc-flag.trapped{background:rgba(155,107,255,.16);color:var(--violet);border:1px solid rgba(155,107,255,.4)}
+.rc-flag.help{background:rgba(255,45,69,.16);color:#ff7a8a;border:1px solid rgba(255,45,69,.4)}
+.rc-flag.down{background:rgba(255,45,69,.3);color:#fff;border:1px solid var(--red)}
+.rc-flag.carry{background:rgba(0,229,255,.12);color:var(--cyan);border:1px solid rgba(0,229,255,.35)}
 
-/* RIGHT PANEL */
-.telemetry{display:flex;flex-direction:column;gap:14px}
-.gauges{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.gauge{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:14px;padding:12px;position:relative;overflow:hidden}
-.gauge::after{content:"";position:absolute;inset:auto -20% -30% -20%;height:60%;background:radial-gradient(400px 120px at 50% 0%, rgba(0,229,255,.08), transparent 70%);pointer-events:none}
-.gauge h5{font-size:10px;letter-spacing:.9px;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:6px}
-.gauge .val{font-family:'Oxanium',sans-serif;font-size:30px;font-weight:800;line-height:1;margin-top:6px;letter-spacing:.5px}
-.gauge .unit{font-size:12px;color:var(--muted);margin-left:4px;font-weight:600}
-.gauge .sub{font-size:11px;color:#9bb3c9;margin-top:2px}
-.bar{height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:8px}
-.bar i{display:block;height:100%;width:30%;border-radius:999px;transition:width .4s ease}
-.bar .ok{background:linear-gradient(90deg,#a8ff38,#00e5ff)}
-.bar .warn{background:linear-gradient(90deg,#ffae00,#ff6a00)}
-.bar .crit{background:linear-gradient(90deg,#ff253a,#ff6a00);animation:barpulse 1s infinite}
-@keyframes barpulse{0%,100%{opacity:1}50%{opacity:.6}}
-.gauge.warn{border-color:rgba(255,174,0,.45)}
-.gauge.crit{border-color:rgba(255,37,58,.6);box-shadow:0 0 18px rgba(255,37,58,.25)}
+.detail{padding:12px}
+.detail-hd{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.detail-hd .rc-avatar{width:42px;height:42px;font-size:13px}
+.detail-hd h4{font-size:14px;letter-spacing:.5px}
+.detail-hd p{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.vitals-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.vital{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:8px 9px}
+.vital span{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;display:block}
+.vital b{font-size:16px;font-family:'Consolas',monospace}
+.vital .bar{height:5px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:6px}
+.vital .bar i{display:block;height:100%;border-radius:999px;transition:width .3s}
+.coord{font-size:10px;color:var(--muted);margin-bottom:10px;font-family:'Consolas',monospace}
+.aid-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:6px}
+.aid{display:flex;flex-direction:column;gap:3px;padding:9px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.02);cursor:pointer;text-align:left;transition:.15s;color:var(--text);font-family:inherit}
+.aid:hover:not(:disabled){border-color:#2f5880;transform:translateY(-1px)}
+.aid:disabled{opacity:.35;cursor:not-allowed}
+.aid .ico{font-size:15px}
+.aid .nm{font-size:11px;font-weight:700}
+.aid .qty{font-size:9px;color:var(--muted);font-family:'Consolas',monospace}
+.aid.o2 .ico{color:var(--cyan)} .aid.water .ico{color:#5ec8ff} .aid.stim .ico{color:var(--lime)} .aid.equipo .ico{color:var(--violet)}
+.cmd-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.cmd{flex:1;min-width:90px;padding:9px 6px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.02);cursor:pointer;color:var(--text);font-size:11px;font-weight:600;font-family:inherit;text-align:center;transition:.15s}
+.cmd:hover{border-color:#2f5880}
+.cmd:disabled{opacity:.35;cursor:not-allowed}
 
-.wide{grid-column:span 2}
-.charts{background:var(--panel);border-radius:14px;padding:10px;border:1px solid var(--line)}
-.alert-log{background:rgba(255,37,58,.06);border:1px solid rgba(255,37,58,.18);border-radius:12px;padding:10px;max-height:150px;overflow:auto}
-.alert-item{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:8px;font-size:12px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.06);margin-bottom:6px}
-.alert-item.crit{border-color:rgba(255,37,58,.4);background:rgba(255,37,58,.12)}
-.alert-item.warn{border-color:rgba(255,174,0,.35);background:rgba(255,174,0,.09)}
-.logtime{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
-.reportHead{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.18);border-radius:12px}
-.switch{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px;gap:3px}
-.switch button{padding:6px 10px;border-radius:999px;border:none;background:transparent;color:var(--muted);font-weight:700;font-size:11px;cursor:pointer}
-.switch button.on{background:var(--cyan);color:#001219;box-shadow:0 4px 12px rgba(0,229,255,.35)}
+.progress-card{padding:12px}
+.progress-card .row{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:7px}
+.progress-card .row b{font-family:'Consolas',monospace}
+.progress-bar{height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-bottom:10px}
+.progress-bar i{display:block;height:100%;border-radius:999px;transition:width .4s}
+.timer{font-size:20px;font-family:'Consolas',monospace;text-align:center;letter-spacing:2px}
+.timer.warn{color:var(--amber)} .timer.crit{color:var(--red);animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+.victim-list{max-height:140px;overflow:auto;display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.victim-list::-webkit-scrollbar{width:6px}.victim-list::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+.vict{display:flex;align-items:center;gap:7px;font-size:11px;padding:5px 8px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.vict .vh{width:8px;height:8px;border-radius:50%}
+.vict .vhbar{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden}
+.vict .vhbar i{display:block;height:100%;border-radius:999px}
 
-/* ALERT OVERLAY */
-.alertOverlay{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(120,0,10,.28);backdrop-filter:blur(2px)}
-.alertOverlay.show{display:grid}
-.alertBox{width:min(560px,92%);background:linear-gradient(180deg,#1a0a0e,#0f0f14);border:2px solid var(--red);border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(255,0,30,.45), 0 0 0 8px rgba(255,0,30,.08);text-align:center;animation:shake .5s}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-.alertBox h2{font-family:'Oxanium',sans-serif;font-size:28px;letter-spacing:1px;color:white}
-.alertBox p{color:#ffabb2;margin-top:6px}
-.flash{position:absolute;inset:0;border:3px solid var(--red);border-radius:16px;pointer-events:none;animation:flashBd 1s infinite}
-@keyframes flashBd{0%,100%{opacity:.9}50%{opacity:.15}}
-
-/* Thermal & particles */
-.particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.p{position:absolute;width:3px;height:3px;background:rgba(255,120,0,.9);border-radius:50%;filter:blur(.3px);animation:rise linear infinite}
-@keyframes rise{from{transform:translateY(110%)}to{transform:translateY(-20%)}}
-.fallFlash{position:absolute;inset:0;background:rgba(255,255,255,.85);opacity:0;pointer-events:none}
-.fallFlash.on{animation:flashW .6s}
-@keyframes flashW{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
-.trappedOverlay{position:absolute;inset:0;background:radial-gradient(600px 400px at 50% 50%, rgba(0,0,0,.0), rgba(0,0,0,.65) 75%), linear-gradient(180deg, rgba(40,0,0,.2), rgba(0,0,0,.4));opacity:0;transition:.5s;pointer-events:none}
-.trappedOverlay.on{opacity:1}
-.dust{position:absolute;inset:0;background:radial-gradient(circle at 30% 40%, rgba(255,255,255,.08) 0 1px, transparent 1.5px), radial-gradient(circle at 70% 60%, rgba(255,255,255,.06) 0 1px, transparent 1.2px);background-size:220px 220px, 180px 180px;opacity:.5;animation:dustMove 8s linear infinite}
-@keyframes dustMove{to{background-position:220px 220px, 180px 180px}}
-
-/* webcam video */
-#cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:.4s}
-#cam.on{opacity:.92}
-
-/* visor nocturno */
-.visor-stage.nitro .env-image{filter:contrast(1.3) saturate(0) brightness(1.2) !important}
-.visor-stage.nitro::after{content:"";position:absolute;inset:0;background:rgba(0,255,120,.10);mix-blend-mode:screen;pointer-events:none;z-index:3}
-
-/* tutorial */
-.tuto{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(420px,88%);background:rgba(10,18,28,.96);border:1px solid rgba(0,229,255,.5);border-radius:14px;padding:16px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.6)}
-.tuto h3{font-family:'Oxanium',sans-serif;letter-spacing:.8px}
-.tuto p{font-size:12px;color:#b9cce0;margin-top:6px;line-height:1.5}
-.hl{color:var(--cyan);font-weight:800}
+.log-card{flex:1;min-height:120px;display:flex;flex-direction:column}
+.log{padding:8px 10px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:6px;max-height:200px}
+.log::-webkit-scrollbar{width:6px}.log::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+.log-item{font-size:11px;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.2);line-height:1.4}
+.log-item .t{color:var(--muted);font-family:'Consolas',monospace;font-size:9px;margin-right:5px}
+.log-item.info{border-color:rgba(0,229,255,.2)}
+.log-item.warn{border-color:rgba(255,174,0,.4);background:rgba(255,174,0,.08)}
+.log-item.crit{border-color:rgba(255,45,69,.45);background:rgba(255,45,69,.1);color:#ffb3bf}
+.log-item.good{border-color:rgba(168,255,56,.4);background:rgba(168,255,56,.07);color:#c8ff9b}
 </style>
 </head>
 <body>
-<!-- TOP BAR -->
 <header class="topbar">
   <div class="brand">
-    <div class="logo">GM</div>
+    <div class="logo">TR</div>
     <div>
-      <h1 class="ox">GUARDIAN MR</h1>
-      <p>Merged Reality • Dispositivo Torácico Inteligente</p>
-    </div>
-    <div class="pill" style="margin-left:8px">
-      <span class="led" id="led"></span>
-      <span class="mono" id="connTxt">CONECTADO • BLE 5.2 • 98%</span>
+      <h1>TERREMOTO MR — Rescate Coordinado</h1>
+      <p>Merged Reality · Coordinador Remoto Post-Sismo</p>
     </div>
   </div>
   <div class="mid">
-    <div class="pill mono" id="clock">--:--:-- • --/--/----</div>
-    <div class="pill mono" id="reportId">RPT-2026-0001</div>
-    <div class="pill" style="gap:6px"><span class="dot"></span> <b class="ox" style="font-size:12px;letter-spacing:.6px">EN VIVO</b> <span class="mono" style="font-size:11px;color:var(--muted)">Centro de Control</span></div>
+    <div class="pill"><span class="led" id="led"></span><span id="statusTxt">LISTO</span></div>
+    <div class="pill mono" id="clock">--:--:--</div>
+    <div class="pill mono" id="dateTxt">--</div>
   </div>
-  <div class="right-top">
-    <button class="btn" id="btnCam">📷 Activar Passthrough MR</button>
-    <button class="btn primary" id="btnMonitor">⧉ Abrir Pantalla Externa</button>
-    <button class="btn ghost" id="btnSound" title="Sonido">🔊</button>
+  <div class="right-top" style="display:flex;gap:7px;flex-wrap:wrap">
+    <button class="btn primary" id="btnStart">▶ INICIAR SIMULACIÓN</button>
+    <button class="btn" id="btnPause">⏸ PAUSA</button>
+    <button class="btn" id="btnSpeed">1×</button>
+    <button class="btn cyan" id="btnMR">📷 MR Passthrough</button>
+    <button class="btn" id="btnMonitor">⧉ Centro de Control</button>
   </div>
 </header>
 
 <main class="wrap">
-  <!-- LEFT: VISOR MR -->
-  <section class="card">
-    <div class="card-hd">
-      <h3>◉ VISOR MERGED REALITY — Operario #07</h3>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="badge mono" id="envName">NAVE INDUSTRIAL • 24°C</span>
-        <span class="badge" id="fps">60 FPS • MR</span>
+  <section class="card map-card">
+    <div class="map-stage" id="mapStage">
+      <video id="mrVideo" autoplay playsinline muted></video>
+      <div id="mapBg"></div>
+      <canvas id="gameCanvas"></canvas>
+      <div class="map-hud">
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+      </div>
+      <div class="map-tip">
+        <span>CLICK: seleccionar rescatista · CLICK+ARRASTRAR: mover · CLICK en víctima: rescate</span>
+        <span><b>Legend:</b> 🔥incendio · ☁️gas · ⚡energia · 🟢punto seguro · 🟦base</span>
+      </div>
+      <div class="overlay" id="overlay">
+        <div class="overlay-box">
+          <h2 id="ovTitle">SIMULACIÓN</h2>
+          <p id="ovMsg">Preparando el dispositivo...</p>
+          <div class="res">
+            <div><span>Rescatados</span><b id="ovRescued">0</b></div>
+            <div><span>Perdidos</span><b id="ovLost">0</b></div>
+            <div><span>Vivos</span><b id="ovAlive">4</b></div>
+          </div>
+          <button class="btn primary" id="ovBtn">▶ Volver a jugar</button>
+        </div>
       </div>
     </div>
-    <div class="visor">
-      <div class="visor-top mono">
-        <span>⟡ GUARDIAN OS v2.4.1 • TRACKING: ESTABLE • LAT: 4.628° N • LON: 74.062° W</span>
-        <span style="display:flex;gap:10px;align-items:center">
-          <span id="batteryHud">◧ 87%</span>
-          <span style="color:var(--lime)">● SEÑAL 4/4</span>
-          <span>REC ● 00:42:11</span>
-        </span>
+    <div class="map-toolbar">
+      <div class="toolbar-left">
+        <span class="sel-info" id="selInfo">Selecciona un rescatista o haz clic en el mapa</span>
       </div>
-
-      <div class="visor-stage" id="stage">
-        <video id="cam" autoplay muted playsinline></video>
-        <div class="env-bg" id="envBg">
-          <div class="env-image" id="envImage"></div>
-          <div class="vignette"></div>
-          <div class="gridOverlay"></div>
-          <canvas id="envCanvas"></canvas>
-          <div class="particles" id="particles"></div>
-          <div class="fallFlash" id="fallFlash"></div>
-          <div class="trappedOverlay" id="trappedFx"><div class="dust"></div></div>
-        </div>
-
-        <div class="hud">
-          <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
-          <div class="hud-center"><div class="reticle"><div class="reticle-dot"></div></div></div>
-          <div class="hud-data">
-            <div class="hud-chip">TEMP AMBIENTE <b id="hudTempAmb">24.2°C</b></div>
-            <div class="hud-chip">ESTADO <b id="hudState" style="color:var(--lime)">ESTABLE</b></div>
-            <div class="hud-chip mono" id="hudCoords">X: 12.4m • Y: 3.2m • Z: 0.9m</div>
-          </div>
-          <div class="hud-right">
-            <div class="mini-bars">
-              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:.6px"><span>FC</span><span class="mono" id="hudHr">78 BPM</span></div>
-              <div class="bar"><i id="barHr" class="ok" style="width:42%"></i></div>
-              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px"><span>SpO₂</span><span class="mono" id="hudSpo2">97%</span></div>
-              <div class="bar"><i id="barSpo2" class="ok" style="width:88%"></i></div>
-              <div style="font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:.5px">MODO: <span style="color:var(--cyan)" id="hudMode">TÉRMICO OFF</span> • CAÍDA: <span id="hudFall" style="color:var(--lime)">NO</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TUTORIAL -->
-        <div class="tuto" id="tuto">
-          <h3>👋 Bienvenido, Operario</h3>
-          <p>Estás equipado con el <span class="hl">arnes torácico GUARDIAN</span> (imagen real del dispositivo). Tu misión: moverte por la planta y sobrevivir a eventos aleatorios.<br>Usa <span class="hl">WASD</span> para moverte, activa escenarios peligrosos abajo y observa como la <span class="hl">pantalla externa</span> dispara alertas cuando tus signos salen de rango.</p>
-          <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-            <button class="btn primary" id="btnStart">▶ INICIAR SIMULACIÓN</button>
-            <button class="btn" id="btnDemo">Ver demo automática</button>
-          </div>
-          <p style="margin-top:8px;font-size:11px;color:var(--muted)">Tip: Abre la “Pantalla Externa” en otro monitor para simulación realista de centro de control.</p>
-        </div>
-
-        <!-- AVATAR CARD -->
-        <div class="avatar-wrap" id="avatarWrap" style="opacity:0;pointer-events:none">
-          <div class="avatar-card">
-            <div class="avatar-img">
-              <img id="avatarImg" src="" alt="Operario con dispositivo">
-              <div class="heatGlow" id="heatGlow"></div>
-            </div>
-            <div class="avatar-meta">
-              <h4 class="ox">OPERARIO 07 — EQUIPO TORÁCICO</h4>
-              <div class="state-pill state-ok" id="statePill"><span>●</span> <span id="stateText">SIGNOS NORMALES</span></div>
-              <div class="vitals-mini">
-                <div class="vmini" id="miniTemp"><span>Temp Corp.</span><b id="miniTempV">36.8°C</b></div>
-                <div class="vmini" id="miniHr"><span>Cardíaco</span><b id="miniHrV">78</b></div>
-                <div class="vmini" id="miniSpo2"><span>SpO₂</span><b id="miniSpo2V">97%</b></div>
-              </div>
-            </div>
-          </div>
-          <div class="avatar-card" style="width:132px;flex:0 0 132px;flex-direction:column;align-items:stretch;gap:6px">
-            <div style="font-size:10px;letter-spacing:.8px;color:var(--muted);text-transform:uppercase">Dispositivo</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px"><span class="mono">BATERÍA</span><b class="mono" id="devBat">87%</b></div>
-            <div class="bar"><i id="devBatBar" class="ok" style="width:87%"></i></div>
-            <div style="font-size:10px;color:var(--muted);line-height:1.4">✔ Sensor temp<br>✔ Acelerómetro<br>✔ SpO₂ óptico<br>✔ HR ECG</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="controls">
-        <div class="scenarios">
-          <button class="scn" data-scn="normal">● NORMAL</button>
-          <button class="scn heat" data-scn="heat">🔥 CALOR EXTREMO</button>
-          <button class="scn fall" data-scn="fall">⚡ SIMULAR CAÍDA</button>
-          <button class="scn trap" data-scn="trap">🧱 ATRAPADO / CONFINADO</button>
-          <button class="scn effort" data-scn="effort">🏃 ESFUERZO FÍSICO</button>
-          <button class="btn danger" id="btnReset" style="margin-left:6px">⟲ REESTABLECER</button>
-        </div>
-        <div class="movement">
-          <span>Mover:</span>
-          <div class="keys"><div class="k" data-k="w">W</div><div class="k" data-k="a">A</div><div class="k" data-k="s">S</div><div class="k" data-k="d">D</div></div>
-          <span style="margin-left:6px">|</span>
-          <button class="btn" id="btnThermal" style="padding:6px 8px">🌡️ Térmico</button>
-          <button class="btn" id="btnNitro" style="padding:6px 8px">👁️ Visor</button>
-        </div>
+      <div class="toolbar-right">
+        <button class="cmd" id="cmdSearch">🔍 Buscar víctimas</button>
+        <button class="cmd" id="cmdSafe">🟢 Transportar a zona segura</button>
+        <button class="cmd" id="cmdAid">🩹 Primeros auxilios</button>
+        <button class="cmd" id="cmdCancel">✖ Cancelar orden</button>
       </div>
     </div>
   </section>
 
-  <!-- RIGHT: TELEMETRIA -->
-  <section class="telemetry">
-    <div class="card" style="padding:0">
-      <div class="card-hd"><h3>◉ TELEMETRÍA EN TIEMPO REAL</h3><div class="switch"><button class="on" id="swLive">EN VIVO</button><button id="swPause">PAUSA</button></div></div>
-      <div style="padding:12px;display:grid;gap:10px">
-        <div class="reportHead mono">
-          <span>REPORTE <b id="reportBig">RPT-2026-0001</b></span>
-          <span id="clockBig">09:41:03 — 27/10/2026</span>
-        </div>
-        <div class="gauges">
-          <div class="gauge" id="gTempBody"><h5>🌡️ Temp. Corporal</h5><div class="val"><span id="vTempBody">36.8</span><span class="unit">°C</span></div><div class="sub" id="sTempBody">Normal — 36.5 a 37.5°C</div><div class="bar"><i id="bTempBody" class="ok" style="width:38%"></i></div></div>
-          <div class="gauge" id="gTempAmb"><h5>🏭 Temp. Ambiente</h5><div class="val"><span id="vTempAmb">24.2</span><span class="unit">°C</span></div><div class="sub" id="sTempAmb">Nave industrial</div><div class="bar"><i id="bTempAmb" class="ok" style="width:28%"></i></div></div>
-          <div class="gauge" id="gHr"><h5>❤️ Frecuencia Cardíaca</h5><div class="val"><span id="vHr">78</span><span class="unit">BPM</span></div><div class="sub" id="sHr">Normal — 60 a 100 BPM</div><div class="bar"><i id="bHr" class="ok" style="width:42%"></i></div></div>
-          <div class="gauge" id="gSpo2"><h5>🫁 SpO₂ Oxígeno</h5><div class="val"><span id="vSpo2">97</span><span class="unit">%</span></div><div class="sub" id="sSpo2">Normal — 95 a 100%</div><div class="bar"><i id="bSpo2" class="ok" style="width:92%"></i></div></div>
-          <div class="gauge" id="gFall"><h5>⚡ Detector de Caída</h5><div class="val" style="font-size:22px"><span id="vFall">NO</span><span class="unit" id="uFall">• Estable</span></div><div class="sub" id="sFall">Acelerómetro: 1.02 g</div><div class="bar"><i id="bFall" class="ok" style="width:8%"></i></div></div>
-          <div class="gauge" id="gTrap"><h5>🧱 Atrapado / Inmovilidad</h5><div class="val" style="font-size:22px"><span id="vTrap">NO</span><span class="unit" id="uTrap">• En movimiento</span></div><div class="sub" id="sTrap">Tiempo inmóvil: 0s</div><div class="bar"><i id="bTrap" class="ok" style="width:5%"></i></div></div>
-        </div>
-        <div class="charts">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h5 style="font-size:11px;letter-spacing:.8px;color:var(--muted)">TENDENCIA • Últimos 45s</h5><span class="mono" style="font-size:11px;color:var(--cyan)">◉ STREAMING</span></div>
-          <canvas id="chart" height="140"></canvas>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div class="alert-log" id="alertLog" style="min-height:130px"></div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div style="background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.18);border-radius:12px;padding:10px">
-              <div style="font-size:11px;letter-spacing:.8px;color:var(--cyan);font-weight:800">🚨 SISTEMA DE ALERTAS</div>
-              <div id="alertBanner" style="margin-top:6px;background:#0e1a24;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:12px;color:var(--muted)">Sin alertas — parámetros dentro de rango normal</div>
-              <div style="display:flex;gap:6px;margin-top:8px">
-                <button class="btn danger" style="flex:1" id="btnAck">✓ Acusar recibo</button>
-                <button class="btn" style="flex:1" id="btnCall">📞 Llamar brigada</button>
-              </div>
-            </div>
-            <div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px">
-              <div style="font-size:11px;font-weight:800;letter-spacing:.6px">📋 BITÁCORA RÁPIDA</div>
-              <div class="mono" id="bitacora" style="margin-top:6px;font-size:11px;line-height:1.6;color:#b8cfe6">• 09:41:12 Sistema iniciado<br>• 09:41:12 Reporte #0001 creado<br>• 09:41:12 Operario en zona segura</div>
-              <button class="btn" style="width:100%;margin-top:8px" id="btnExport">⬇ Exportar reporte (CSV)</button>
-            </div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn" style="flex:1" id="btnShareMonitor">⧉ Sincronizar monitor externo</button>
-          <button class="btn primary" style="flex:1" id="btnTestAlert">🔔 Probar alerta</button>
+  <aside class="device">
+    <div class="card">
+      <div class="card-hd"><h3>📡 Dispositivo MR — Rescatistas</h3><span class="badge" id="netBadge">EN VIVO</span></div>
+      <div class="rescat-list" id="rescatList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h3>🎛️ Dispositivo — Control Remoto</h3></div>
+      <div class="detail" id="detail">
+        <div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0">
+          Selecciona un rescatista para ver telemetría y enviar ayuda a distancia.
         </div>
       </div>
     </div>
-    <div class="card" style="padding:12px">
-      <h3 style="font-size:11px;letter-spacing:.9px;color:var(--muted);text-transform:uppercase">Cómo funciona el juego</h3>
-      <p style="font-size:12px;line-height:1.6;color:#b9cce0;margin-top:6px">Este es un <b style="color:var(--cyan)">gemelo digital del dispositivo real</b> de la foto. El arnés mide <b>temperatura corporal/ambiental, HR, SpO₂ y caídas</b> por acelerómetro. En el juego, cada escenario estresa esas variables. Si 2 o más salen de rango, se dispara una <b style="color:var(--red)">alerta crítica</b> que verías en el centro de control — con sonido, vibración y registro con hora y número de reporte.</p>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-        <span class="pill mono" style="font-size:11px">Umbral HR: 50-100</span>
-        <span class="pill mono" style="font-size:11px">SpO₂ &lt;95% alerta</span>
-        <span class="pill mono" style="font-size:11px">Temp &gt;37.8°C fiebre</span>
-        <span class="pill mono" style="font-size:11px">Caída = alerta inmediata</span>
+
+    <div class="card">
+      <div class="card-hd"><h3>📊 Operación</h3><span class="badge mono" id="repBadge">RPT-0000</span></div>
+      <div class="progress-card">
+        <div class="row"><span>Víctimas rescatadas</span><b id="pRescued">0 / 8</b></div>
+        <div class="progress-bar"><i id="pRescuedBar" style="width:0%;background:linear-gradient(90deg,#a8ff38,#00e5ff)"></i></div>
+        <div class="row"><span>Víctimas perdidas</span><b id="pLost">0</b></div>
+        <div class="progress-bar"><i id="pLostBar" style="width:0%;background:linear-gradient(90deg,#ff2d45,#ff6a00)"></i></div>
+        <div class="timer" id="timer">06:00</div>
+        <div class="victim-list" id="victimList"></div>
       </div>
     </div>
-  </section>
+
+    <div class="card log-card">
+      <div class="card-hd"><h3>🧾 Bitácora / Alertas</h3><span class="badge" id="alertBadge">0</span></div>
+      <div class="log" id="log"></div>
+    </div>
+  </aside>
 </main>
 
-<footer style="max-width:1540px;margin:0 auto;padding:6px 14px 18px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
-  <span>© 2026 GUARDIAN MR • Proyecto académico Modelo3D • Simulación sin hardware real — listo para conectar BLE/WiFi a dispositivo físico</span>
-  <span class="mono">Hecho para <b style="color:var(--cyan)">zharpinzon/Modelo3D</b> • Mixed Reality Safety</span>
-</footer>
-
-<div class="alertOverlay" id="alertOverlay">
-  <div class="alertBox">
-    <div class="flash"></div>
-    <div style="font-size:12px;letter-spacing:2px;color:var(--red);font-weight:800">⚠️ ALERTA CRÍTICA — CENTRAL NOTIFICADA</div>
-    <h2 id="alertTitle">¡CAÍDA DETECTADA!</h2>
-    <p id="alertDesc">Aceleración 3.2g • Posible pérdida de consciencia • Enviando brigada</p>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:14px">
-      <button class="btn danger" id="btnOverlayAck">✓ ENTENDIDO</button>
-      <button class="btn primary" id="btnOverlayCall">📡 ENVIAR RESCATE</button>
-    </div>
-    <div class="mono" style="margin-top:10px;font-size:11px;color:#ffabb2" id="alertMeta">RPT-2026-0001 • 09:41:45 • Operario #07 • Zona: Andamio B</div>
-  </div>
-</div>
-
 <script>
-const $ = s=>document.querySelector(s);
-const $$ = s=>[...document.querySelectorAll(s)];
+"use strict";
+/* ============================================================
+   TERREMOTO MR — Rescate Coordinado
+   Juego de Realidad Mixta: coordenador remoto tras un sismo.
+   ============================================================ */
+(() => {
 
-// Avatar: foto real del arnés incluida en el repo (assets/dispositivo.png)
-const avatarImgEl = $('#avatarImg');
-avatarImgEl.src = 'assets/dispositivo.png';
-avatarImgEl.addEventListener('error', ()=>{
-  avatarImgEl.src='Captura%20de%20pantalla%202026-10-27%20094101.png';
-},{once:true});
+// ---------- Utilidades ----------
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const lerp = (a,b,t) => a + (b-a)*t;
+const dist = (ax,ay,bx,by) => Math.hypot(ax-bx, ay-by);
+const nowStr = () => new Date().toLocaleTimeString('es-CO',{hour12:false});
+const dateStr = () => new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
 
-// Environment images (con degradado de respaldo por si el CDN no carga)
-const envs = {
-  normal: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1200&auto=format&fit=crop',
-  heat: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=1200&auto=format&fit=crop',
-  fall: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop',
-  trap: 'https://images.unsplash.com/photo-1513828583688-c52646db42da?q=80&w=1200&auto=format&fit=crop',
-  effort: 'https://images.unsplash.com/photo-1444723121867-7a241cacace9?q=80&w=1200&auto=format&fit=crop'
+function rng(seed){ // mulberry32
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const rand = (a,b) => a + Math.random()*(b-a);
+
+// ---------- Config ----------
+const CFG = {
+  world:{w:1700, h:1050},
+  rescatistas:[
+    {name:'RECATA-01', role:'Búsqueda',   color:'#00e5ff'},
+    {name:'RECATA-02', role:'Médico',     color:'#a8ff38'},
+    {name:'RECATA-03', role:'Transporte', color:'#ffae00'},
+    {name:'RECATA-04', role:'Excavación', color:'#ff6ec7'},
+  ],
+  victims:8,
+  timeLimit:360, // 6 min
+  thresholds:{
+    hr:{base:72, warnHigh:100, critHigh:140, warnLow:55, critLow:50},
+    spo2:{base:98, warn:95, crit:90},
+    temp:{base:37, warn:37.8, crit:39},
+    energy:{base:100, warn:40, crit:20},
+  },
+  resources:{o2:6, water:6, stimulant:4, equipo:3},
 };
-const envFallbacks = {
-  normal: 'linear-gradient(180deg,#0b2233,#07131c 60%,#04090d)',
-  heat: 'radial-gradient(900px 500px at 50% 80%,#7a2000,#2a0b00 70%,#0a0400)',
-  fall: 'linear-gradient(180deg,#0b1a2a 0%,#0a1420 55%,#05090f)',
-  trap: 'radial-gradient(600px 400px at 50% 60%,#141414,#050505 80%)',
-  effort: 'linear-gradient(180deg,#0b2330,#0a1a16 60%,#04090b)'
-};
-const loadedEnvImages = {};
-let currentEnv = 'normal';
-function setEnv(name){
-  const key = envs[name] ? name : 'normal';
-  currentEnv = key;
-  const el=$('#envImage');
-  el.style.backgroundImage = `${loadedEnvImages[key] ? `url('${envs[key]}'), ` : ''}${envFallbacks[key]}`;
-  if(!loadedEnvImages[key]){
-    const img = new Image();
-    img.onload = ()=>{ loadedEnvImages[key]=true; if(currentEnv===key) setEnv(key); };
-    img.onerror = ()=>{ loadedEnvImages[key]=true; };
-    img.src = envs[key];
+
+// ---------- Estado ----------
+let state = { running:false, paused:false, speed:1, time:0, report:0, ended:false, MRon:false };
+let world = { w:CFG.world.w, h:CFG.world.h, obstacles:[], buildings:[], collapsed:[], hazards:[], safes:[], base:null };
+let rescuers = [], victims = [];
+let selected = null;
+let res = { ...CFG.resources };
+let logs = [];
+let alerts = 0;
+let lastBroadcast = 0;
+let dragged = false, dragFrom = null;
+let mrStream = null;
+
+// ---------- DOM ----------
+const canvas = $('#gameCanvas');
+const ctx = canvas.getContext('2d');
+const mapStage = $('#mapStage');
+const mrVideo = $('#mrVideo');
+
+// ---------- Mapa / mundo ----------
+function buildWorld(){
+  const R = rng(20260101);
+  const W = world.w, H = world.h;
+  world.obstacles = []; world.buildings = []; world.collapsed = []; world.hazards = [];
+  world.base = {x: W/2, y: H - 60};
+  const cols = 8, rows = 5;
+  const stW = 70, stH = 64; // calle ancha
+  const cellW = (W - (cols+1)*stW) / cols;
+  const cellH = (H - (rows+1)*stH) / rows;
+  const grid = [];
+  for(let c=0;c<cols;c++){ grid[c]=[]; for(let r=0;r<rows;r++){
+    const x = stW + c*(cellW+stW), y = stH + r*(cellH+stH);
+    grid[c][r] = {x,y,w:cellW,h:cellH};
+  }}
+  // edificios: algunos intactos, algunos derrumbados
+  for(let c=0;c<cols;c++) for(let r=0;r<rows;r++){
+    const cell = grid[c][r];
+    const roll = R();
+    if(roll < 0.16){
+      // derrumbado -> escombros (obstáculo irregular)
+      const ob = {x:cell.x+6, y:cell.y+6, w:cell.w-12, h:cell.h-12, kind:'rubble'};
+      world.obstacles.push(ob); world.collapsed.push(ob);
+      cell.collapsed = true;
+    } else {
+      const ob = {x:cell.x+6, y:cell.y+6, w:cell.w-12, h:cell.h-12, kind:'building'};
+      world.obstacles.push(ob); world.buildings.push(ob);
+      cell.collapsed = false;
+    }
   }
-  const labels={normal:'NAVE INDUSTRIAL • 24°C',heat:'ZONA HORNO • 52°C 🔥',fall:'ANDAMIO NIVEL 4 • 18m',trap:'TANQUE CONFINADO • BAJO O₂',effort:'MANIOBRA PESADA • ESFUERZO'};
-  name = key;
-  $('#envName').textContent = labels[name]||labels.normal;
-  if(name==='heat'){ $('#particles').innerHTML=''; for(let i=0;i<18;i++){ let d=document.createElement('div');d.className='p';d.style.left=Math.random()*100+'%';d.style.animationDuration=(2+Math.random()*3)+'s';d.style.animationDelay=Math.random()*2+'s';d.style.opacity=.6+Math.random()*.4;$('#particles').appendChild(d);} }
-  else $('#particles').innerHTML='';
-  $('#trappedFx').classList.toggle('on', name==='trap');
-}
-setEnv('normal');
-
-// Canvas subtle scan
-const cvs=$('#envCanvas'), ctx=cvs.getContext('2d');
-function resize(){ cvs.width=cvs.clientWidth*devicePixelRatio; cvs.height=cvs.clientHeight*devicePixelRatio; }
-addEventListener('resize',resize); resize();
-let t=0;
-function loop(){
-  t+=0.016;
-  ctx.clearRect(0,0,cvs.width,cvs.height);
-  // subtle moving line
-  ctx.strokeStyle='rgba(0,229,255,0.08)';
-  ctx.lineWidth=1;
-  for(let i=0;i<3;i++){
-    let y=(t*40 + i*120)%cvs.height;
-    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(cvs.width,y); ctx.stroke();
+  // algunas montones de escombros en calles (siempre alejados de la base)
+  for(let i=0;i<10;i++){
+    let x=0,y=0,ok=false;
+    for(let k=0;k<12;k++){
+      x = stW + R()*(W-2*stW); y = stH + R()*(H-2*stH);
+      if(dist(x,y,world.base.x,world.base.y)<160) continue;
+      if(pointInObstacle(x,y,30)) continue;
+      ok=true; break;
+    }
+    if(!ok) continue;
+    world.obstacles.push({x:x-rand(10,18), y:y-rand(10,18), w:rand(20,38), h:rand(20,38), kind:'rubble'});
   }
-  requestAnimationFrame(loop);
-}
-loop();
+  // hazards
+  const fireSpots = [[0.22,0.30],[0.62,0.18],[0.78,0.55],[0.30,0.72]];
+  fireSpots.forEach(([fx,fy])=>{
+    world.hazards.push({type:'fire', x:fx*W, y:fy*H, r:rand(46,66), t:Math.random()*6});
+  });
+  const gasSpots = [[0.50,0.62],[0.85,0.30],[0.15,0.55]];
+  gasSpots.forEach(([fx,fy])=>{
+    world.hazards.push({type:'gas', x:fx*W, y:fy*H, r:rand(60,80), t:Math.random()*6});
+  });
+  // línea eléctrica caída (zigzag) cruzando una calle
+  const px = 0.42*W;
+  world.hazards.push({type:'power', x1:px, y1:0.10*H, x2:px+rand(-40,40), y2:0.95*H});
 
-// Simulation engine
-const LIMITS = {
-  tempBody:{warn:37.8, crit:39},
-  tempAmb:{warn:35, crit:45},
-  hr:{warnHigh:100, critHigh:135, warnLow:55, critLow:50},
-  spo2:{warnLow:95, critLow:90},
-  accel:{warn:1.5, crit:1.9},
-  trap:{warn:4, crit:9}
-};
-let reportNum = Number(localStorage.getItem('guardian_mr_report')||1) || 1;
-let reportId=`RPT-2026-${String(reportNum).padStart(4,'0')}`;
-let running=false, mode='normal', thermalOn=false;
-let soundOn=true;
-let state={
-  tempBody:36.8, tempAmb:24.2, hr:78, spo2:97, fall:false, trapped:false, trapTime:0, moving:false, accel:1.02, battery:87,
-  pos:{x:12.4,y:3.2,z:0.9}
-};
-let history={hr:[],spo2:[],temp:[],tempAmb:[],accel:[],trap:[],time:[]}, histMax=45;
-let alerts=[], lastAlertAt=0, lastAlertSig='';
-let ticker=null;
-let posDir={x:0,y:0};
-
-function nowStr(){ return new Date().toLocaleTimeString('es-CO',{hour12:false}) }
-function dateStr(){ return new Date().toLocaleDateString('es-CO') }
-function updateClocks(){
-  $('#clock').textContent = `${nowStr()} • ${dateStr()}`;
-  $('#clockBig').textContent = `${nowStr()} — ${dateStr()}`;
-  $('#reportId').textContent = reportId;
-  $('#reportBig').textContent = reportId;
-  $('#alertMeta').textContent = `${reportId} • ${nowStr()} • Operario #07 • Zona: ${$('#envName').textContent}`;
-}
-setInterval(updateClocks,1000); updateClocks();
-
-let lastDriftTs=0;
-function drift(){
-  const nowTs=performance.now();
-  const dt=Math.min(0.6, lastDriftTs ? (nowTs-lastDriftTs)/1000 : 0.11);
-  lastDriftTs=nowTs;
-  let target={};
-  const jitter = (a)=> (Math.random()-0.5)*a;
-  if(mode==='normal'){
-    target.tempBody=36.8; target.tempAmb=24.2; target.hr=78; target.spo2=97;
-  } else if(mode==='heat'){
-    target.tempBody=38.9; target.tempAmb=51; target.hr=142; target.spo2=94;
-  } else if(mode==='effort'){
-    target.tempBody=37.9; target.tempAmb=26; target.hr=138; target.spo2=95;
-  } else if(mode==='trap'){
-    target.tempBody=37.4; target.tempAmb=31; target.hr=118; target.spo2=86;
-  } else if(mode==='fall'){
-    // fall is impulse handled separately
-    target.tempBody=36.9; target.tempAmb=24; target.hr=128; target.spo2=93;
-  }
-  // smooth approach
-  const lerp=(a,b,s)=>a+(b-a)*s;
-  const speed = mode==='heat'?0.06: mode==='trap'?0.03:0.05;
-  state.tempBody = lerp(state.tempBody, target.tempBody, speed) + jitter(0.06);
-  state.tempAmb = lerp(state.tempAmb, target.tempAmb, speed) + jitter(0.2);
-  state.hr = lerp(state.hr, target.hr, speed*1.2) + jitter(2);
-  state.spo2 = lerp(state.spo2, target.spo2, speed) + jitter(0.5);
-  if(state.moving){ state.hr += 6 + Math.random()*4; state.tempBody+=0.04; }
-  // clamp (el visor térmico es solo visual: NO altera la temperatura corporal)
-  state.hr=Math.max(42,Math.min(185,state.hr));
-  state.spo2=Math.max(81,Math.min(99,state.spo2));
-  state.tempBody=Math.max(36.0,Math.min(40.5,state.tempBody));
-  state.tempAmb=Math.max(18,Math.min(58,state.tempAmb));
-  // trap timer — inmóvil mientras el escenario siga activo (en segundos reales)
-  if(mode==='trap'){ state.trapTime+=dt; state.spo2 -= 0.4*dt; } else state.trapTime=Math.max(0,state.trapTime-2*dt);
-  state.trapped = mode==='trap' && state.trapTime>8;
-  // battery drain (~1% cada 10 minutos de simulación)
-  state.battery=Math.max(0,state.battery-0.006*dt);
-  // accel
-  if(state.fall){ state.accel= 2.2 + Math.random()*1.2; if(Math.random()<0.08) state.fall=false; }
-  else state.accel= 0.98 + Math.random()*0.08 + (state.moving?0.15:0);
-  // position drift
-  state.pos.x += posDir.x*0.04 + jitter(0.01);
-  state.pos.z += posDir.y*0.04;
+  // puntos seguros (2) en intersecciones
+  world.safes = [
+    {x: stW + 2*(cellW+stW) + cellW/2, y: stH + 2*(cellH+stH) + cellH/2},
+    {x: stW + 6*(cellW+stW) + cellW/2, y: stH + 4*(cellH+stH) + cellH/2},
+  ];
+  // base de rescate (inicio)
+  world.base = {x: W/2, y: H - 60};
+  buildNav();
 }
 
-function evaluate(){
-  let issues=[];
-  let level='ok';
-  const add=(type,title,desc)=>{ issues.push({type,title,desc}); if(type==='crit') level='crit'; else if(level!=='crit') level='warn'; };
-  // temp corporal
-  if(state.tempBody>=LIMITS.tempBody.crit) add('crit','HIPERTERMIA CRÍTICA',`Temp corporal ${state.tempBody.toFixed(1)}°C — riesgo golpe de calor`);
-  else if(state.tempBody>=LIMITS.tempBody.warn) add('warn','Temperatura elevada',`${state.tempBody.toFixed(1)}°C — hidratar y pausar`);
-  // temp ambiente
-  if(state.tempAmb>=LIMITS.tempAmb.crit) add('crit','AMBIENTE EXTREMO',`${state.tempAmb.toFixed(1)}°C — evacuación recomendada`);
-  else if(state.tempAmb>=LIMITS.tempAmb.warn) add('warn','Calor ambiental alto',`${state.tempAmb.toFixed(1)}°C en zona de trabajo`);
-  // frecuencia cardíaca (alta y baja)
-  if(state.hr>LIMITS.hr.critHigh || state.hr<LIMITS.hr.critLow) add('crit', state.hr>LIMITS.hr.critHigh?'TAQUICARDIA SEVERA':'BRADICARDIA SEVERA',`FC ${Math.round(state.hr)} BPM fuera de rango seguro`);
-  else if(state.hr>LIMITS.hr.warnHigh || state.hr<LIMITS.hr.warnLow) add('warn','Frecuencia cardíaca alterada',`${Math.round(state.hr)} BPM — monitorizar`);
-  // spo2
-  if(state.spo2<LIMITS.spo2.critLow) add('crit','HIPOXEMIA CRÍTICA',`SpO₂ ${Math.round(state.spo2)}% — oxígeno crítico`);
-  else if(state.spo2<LIMITS.spo2.warnLow) add('warn','Oxigenación baja',`SpO₂ ${Math.round(state.spo2)}% — revisar ventilación`);
-  // caída / acelerómetro
-  if(state.fall || state.accel>LIMITS.accel.crit) add('crit','¡CAÍDA DETECTADA!',`Aceleración ${state.accel.toFixed(2)}g — posible impacto`);
-  else if(state.accel>LIMITS.accel.warn) add('warn','Movimiento brusco',`Aceleración ${state.accel.toFixed(2)}g — vigilar al operario`);
-  // atrapamiento / inmovilidad
-  if(state.trapped || state.trapTime>LIMITS.trap.crit) add('crit','ATRAPADO / INMOVILIDAD',`Inmóvil ${state.trapTime.toFixed(0)}s en espacio confinado`);
-  else if(state.trapTime>LIMITS.trap.warn) add('warn','Inmovilidad prolongada',`Sin movimiento ${state.trapTime.toFixed(0)}s — verificar estado`);
-
-  // overall pill + LED de conexión
-  let pill=$('#statePill'), txt=$('#stateText'), hudState=$('#hudState');
-  pill.className='state-pill '+(level==='crit'?'state-crit':level==='warn'?'state-warn':'state-ok');
-  if(level==='crit'){ txt.textContent='ESTADO CRÍTICO'; hudState.textContent='CRÍTICO'; hudState.style.color='var(--red)'; }
-  else if(level==='warn'){ txt.textContent='ADVERTENCIA'; hudState.textContent='ALERTA'; hudState.style.color='var(--amber)'; }
-  else { txt.textContent='SIGNOS NORMALES'; hudState.textContent='ESTABLE'; hudState.style.color='var(--lime)'; }
-  const led=$('#led');
-  led.style.background = level==='crit'?'var(--red)':level==='warn'?'var(--amber)':'var(--lime)';
-  led.style.boxShadow = `0 0 10px ${level==='crit'?'var(--red)':level==='warn'?'var(--amber)':'var(--lime)'}`;
-  $('#connTxt').textContent = level==='crit' ? 'ALERTA • CENTRO NOTIFICADO' : level==='warn' ? 'VIGILANCIA • BLE 5.2' : 'CONECTADO • BLE 5.2 • 98%';
-
-  // alert banner + overlay (una alerta por cambio de estado, no cada frame)
-  if(issues.length){
-    let crits=issues.filter(i=>i.type==='crit');
-    const sig=issues.map(i=>i.title).join('|');
-    if(crits.length && sig!==lastAlertSig && Date.now()-lastAlertAt>4000){
-      lastAlertSig=sig;
-      lastAlertAt=Date.now();
-      triggerAlert(crits[0]);
-      logAlert(crits[0]);
-      // also broadcast
-      broadcast({type:'alert', data:crits[0], state, reportId, time:nowStr()});
-    } else if(!crits.length){ lastAlertSig=sig; }
-    $('#alertBanner').innerHTML = issues.map(i=> `<div style="color:${i.type==='crit'?'#ff6b7a':'#ffce4d'};font-weight:800">${i.type==='crit'?'●':'▲'} ${i.title}</div><div style="font-size:11px;color:#cfe0f0">${i.desc}</div>`).join('<div style="height:6px"></div>');
-    $('#alertBanner').style.borderColor = level==='crit'?'rgba(255,37,58,.5)':'rgba(255,174,0,.4)';
-    $('#alertBanner').style.background = level==='crit'?'rgba(255,37,58,.10)':'rgba(255,174,0,.08)';
-  } else {
-    lastAlertSig='';
-    $('#alertBanner').textContent='Sin alertas — parámetros dentro de rango normal';
-    $('#alertBanner').style.borderColor='var(--line)'; $('#alertBanner').style.background='#0e1a24';
+// ---------- Navegación: grilla + A* ----------
+const CS = 20; // tamaño de celda (unidades mundo)
+let nav = { gw:0, gh:0, walk:[] };
+function buildNav(){
+  const gw = Math.ceil(world.w/CS), gh = Math.ceil(world.h/CS);
+  nav.gw=gw; nav.gh=gh; nav.walk=[];
+  const EXP=12; // distancia de seguridad (radio rescatista 10 + margen 2)
+  for(let gy=0;gy<gh;gy++){ nav.walk[gy]=[]; for(let gx=0;gx<gw;gx++){
+    const cellRect={x:gx*CS, y:gy*CS, w:CS, h:CS};
+    let ok=true;
+    for(const o of world.obstacles){
+      const ex={x:o.x-EXP, y:o.y-EXP, w:o.w+2*EXP, h:o.h+2*EXP};
+      if(rectsOverlap(cellRect, ex)){ ok=false; break; }
+    }
+    nav.walk[gy][gx]=ok;
+  }}
+  // garantizar que la base y sus calles adyacentes sean transitables
+  const [bgx,bgy]=[Math.floor(world.base.x/CS),Math.floor(world.base.y/CS)];
+  for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++){
+    const gx=bgx+dx, gy=bgy+dy;
+    if(gx>=0&&gy>=0&&gx<gw&&gy<gh && Math.abs(dx)+Math.abs(dy)<=2) nav.walk[gy][gx]=true;
   }
 }
-
-function triggerAlert(issue){
-  $('#alertTitle').textContent=issue.title;
-  $('#alertDesc').textContent=issue.desc;
-  $('#alertOverlay').classList.add('show');
-  if(soundOn) playSiren();
-  if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
-  // flash
-  document.body.style.outline='3px solid var(--red)';
-  setTimeout(()=>document.body.style.outline='none',900);
+function rectsOverlap(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
+function cellAt(x,y){ return [Math.floor(x/CS), Math.floor(y/CS)]; }
+function navInBounds(gx,gy){ return gx>=0&&gy>=0&&gx<nav.gw&&gy<nav.gh; }
+function navWalkable(gx,gy){ return navInBounds(gx,gy) && nav.walk[gy][gx]; }
+function nearestWalkable(x,y){
+  for(let r=0;r<10;r++){
+    for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){
+      if(Math.max(Math.abs(dx),Math.abs(dy))!==r) continue;
+      const gx=Math.floor(x/CS)+dx, gy=Math.floor(y/CS)+dy;
+      if(navWalkable(gx,gy)) return {x:(gx+0.5)*CS, y:(gy+0.5)*CS};
+    }
+  }
+  return {x,y};
+}
+// célula walkable REACHABLE desde (sx,sy) más cercana a (tx,ty) — BFS
+function reachableNearestWalkable(sx,sy,tx,ty){
+  const [sgx,sgy]=cellAt(sx,sy);
+  if(!navWalkable(sgx,sgy)) return nearestWalkable(tx,ty);
+  const visited=new Set(); const q=[[sgx,sgy]]; visited.add(sgx+','+sgy);
+  let best=null, bestD=1e9;
+  const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+  while(q.length){
+    const [cx,cy]=q.shift();
+    const d=dist((cx+0.5)*CS,(cy+0.5)*CS, tx,ty);
+    if(d<bestD){ bestD=d; best=[cx,cy]; }
+    if(d<CS*1.2) break; // suficientemente cerca
+    for(const [dx,dy] of dirs){
+      const nx=cx+dx, ny=cy+dy;
+      if(!navWalkable(nx,ny)) continue;
+      const k=nx+','+ny; if(visited.has(k)) continue; visited.add(k); q.push([nx,ny]);
+    }
+  }
+  return best?{x:(best[0]+0.5)*CS, y:(best[1]+0.5)*CS}:{x:tx,y:ty};
+}
+function findPath(sx,sy,tx,ty){
+  const [sgx,sgy]=cellAt(sx,sy);
+  const [tgx,tgy]=cellAt(tx,ty);
+  if(!navWalkable(sgx,sgy)) return null;
+  let tgt=tgx,tgy2=tgy;
+  if(!navWalkable(tgx,tgy)){ const nw=nearestWalkable(tx,ty); [tgt,tgy2]=cellAt(nw.x,nw.y); if(!navWalkable(tgt,tgy2)) return null; }
+  return aStar(sgx,sgy,tgt,tgy2);
+}
+function aStar(sgx,sgy,tgx,tgy){
+  const key=(x,y)=>x*10000+y;
+  const h=(x,y)=>Math.hypot(x-tgx,y-tgy);
+  const open=new Map(), closed=new Set(), came=new Map(), g=new Map();
+  const s0=key(sgx,sgy); g.set(s0,0); open.set(s0,h(sgx,sgy));
+  const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+  while(open.size){
+    let curK=null,curF=Infinity;
+    for(const [k,f] of open){ if(f<curF){curF=f;curK=k;} }
+    open.delete(curK);
+    const cx=Math.floor(curK/10000), cy=curK%10000;
+    if(cx===tgx&&cy===tgy){
+      const path=[]; let k=curK;
+      while(came.has(k)){ const [px,py]=came.get(k); path.unshift({x:(px+0.5)*CS, y:(py+0.5)*CS}); k=px*10000+py; }
+      return path;
+    }
+    closed.add(curK);
+    for(const [dx,dy] of dirs){
+      const nx=cx+dx, ny=cy+dy;
+      if(!navWalkable(nx,ny)) continue;
+      if(dx!==0&&dy!==0){ if(!navWalkable(cx+dx,cy)||!navWalkable(cx,cy+dy)) continue; }
+      const nk=key(nx,ny); if(closed.has(nk)) continue;
+      const cost=(dx!==0&&dy!==0)?1.414:1;
+      const ng=g.get(curK)+cost;
+      if(!g.has(nk)||ng<g.get(nk)){ g.set(nk,ng); came.set(nk,[cx,cy]); open.set(nk,ng+h(nx,ny)); }
+    }
+  }
+  return null;
 }
 
-function logAlert(issue){
-  const el=document.createElement('div');
-  el.className='alert-item '+(issue.type==='crit'?'crit':'warn');
-  el.innerHTML=`<span style="font-size:14px">${issue.type==='crit'?'🚨':'⚠️'}</span><div><b>${issue.title}</b><div class="logtime">${nowStr()} • ${reportId}</div><div style="font-size:11px;color:#d8e6f5">${issue.desc}</div></div>`;
-  $('#alertLog').prepend(el);
-  $('#bitacora').innerHTML = `• ${nowStr()} <b style="color:${issue.type==='crit'?'var(--red)':'var(--amber)'}">${issue.title}</b> — ${issue.desc}<br>` + $('#bitacora').innerHTML;
-  if($('#alertLog').children.length>12) $('#alertLog').lastElementChild.remove();
+function pointInObstacle(x,y,pad){
+  for(const o of world.obstacles){
+    if(x>o.x-pad && x<o.x+o.w+pad && y>o.y-pad && y<o.y+o.h+pad) return true;
+  }
+  return false;
+}
+function nearestSafe(x,y){
+  let best=null, bd=1e9;
+  for(const s of world.safes){ const d=dist(x,y,s.x,s.y); if(d<bd){bd=d;best=s;} }
+  return best;
 }
 
-// Rendering
+// ---------- Entidades ----------
+function makeRescuer(cfg){
+  return {
+    id:cfg.name, name:cfg.name, role:cfg.role, color:cfg.color,
+    x:world.base.x+rand(-15,15), y:world.base.y+rand(-12,12),
+    vx:0, vy:0, angle:0, radius:10,
+    hr:72, spo2:98, temp:37, energy:100,
+    state:'idle', mode:'idle', target:null, victim:null,
+    carrying:false, trapped:false, freeProgress:0, freeTime:6,
+    digProgress:0, digTime:5, downTimer:0, downTimer2:0, dead:false,
+    wanderT:0, wanderDir:rand(0,6.28),
+    flashT:0, collapseRisk:0, collapseThresh:rand(7,12),
+    path:null, victimRef:null,
+  };
+}
+function makeVictim(i){
+  let x, y, atrapado=false, tries=0;
+  do{
+    x = rand(80, world.w-80); y = rand(80, world.h-120);
+    tries++;
+  } while(tries<30 && dist(x,y,world.base.x,world.base.y)<150);
+  // ¿queda atrapada dentro de un derrumbe?
+  atrapado = pointInObstacle(x, y, 8);
+  // si no atrapada pero choca con obstáculo, despejar
+  if(!atrapado && pointInObstacle(x, y, 6)){
+    for(let k=0;k<12;k++){ x+=rand(-34,34); y+=rand(-34,34); }
+    atrapado = pointInObstacle(x, y, 8);
+  }
+  return {
+    id:'V'+(i+1), x, y, atrapado,
+    state: atrapado ? 'atrapado' : 'herido', // 'atrapado','herido','found','extracting','carrying','delivered','deceased'
+    health: atrapado ? rand(55,75) : rand(45,65),
+    found:false, carriedBy:null, rescued:false, dead:false,
+    t:Math.random()*6,
+  };
+}
+
+// ---------- Render: mapping ----------
+let view = {scale:1, ox:0, oy:0};
+function resizeCanvas(){
+  const dpr = window.devicePixelRatio || 1;
+  const r = mapStage.getBoundingClientRect();
+  canvas.width = r.width * dpr; canvas.height = r.height * dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  fitView();
+}
+function fitView(){
+  const r = mapStage.getBoundingClientRect();
+  const s = Math.min(r.width/world.w, r.height/world.h);
+  view.scale = s;
+  view.ox = (r.width - world.w*s)/2;
+  view.oy = (r.height - world.h*s)/2;
+}
+function W2S(x,y){ return [x*view.scale+view.ox, y*view.scale+view.oy]; }
+function S2W(sx,sy){ return [(sx-view.ox)/view.scale, (sy-view.oy)/view.scale]; }
+
+// ---------- Render ----------
 function render(){
-  $('#vTempBody').textContent=state.tempBody.toFixed(1);
-  $('#vTempAmb').textContent=state.tempAmb.toFixed(1);
-  $('#vHr').textContent=Math.round(state.hr);
-  $('#vSpo2').textContent=Math.round(state.spo2);
-  $('#vFall').textContent= state.fall||state.accel>1.9 ? 'SÍ':'NO';
-  $('#uFall').textContent= state.fall? '• ¡Impacto!':'• Estable';
-  $('#sFall').textContent=`Acelerómetro: ${state.accel.toFixed(2)} g`;
-  $('#vTrap').textContent= state.trapped?'SÍ':'NO';
-  $('#uTrap').textContent= state.trapped?'• ¡Inmóvil!': state.moving?'• En movimiento':'• En pausa';
-  $('#sTrap').textContent=`Tiempo inmóvil: ${state.trapTime.toFixed(0)}s`;
-  $('#miniTempV').textContent=state.tempBody.toFixed(1)+'°C';
-  $('#miniHrV').textContent=Math.round(state.hr);
-  $('#miniSpo2V').textContent=Math.round(state.spo2)+'%';
-  $('#hudTempAmb').textContent=state.tempAmb.toFixed(1)+'°C';
-  $('#hudHr').textContent=Math.round(state.hr)+' BPM';
-  $('#hudSpo2').textContent=Math.round(state.spo2)+'%';
-  $('#hudFall').textContent= state.fall?'SÍ':'NO';
-  $('#hudFall').style.color= state.fall?'var(--red)':'var(--lime)';
-  $('#hudCoords').textContent=`X: ${state.pos.x.toFixed(1)}m • Y: ${state.pos.y.toFixed(1)}m • Z: ${state.pos.z.toFixed(1)}m`;
-  $('#batteryHud').textContent=`◧ ${Math.round(state.battery)}%`;
-  $('#devBat').textContent=Math.round(state.battery)+'%';
-  $('#devBatBar').style.width=Math.round(state.battery)+'%';
-  // color logic for gauges (mismos umbrales que la pantalla externa y el README)
-  applyGauge('#gTempBody','bTempBody',state.tempBody,LIMITS.tempBody);
-  applyGauge('#gTempAmb','bTempAmb',state.tempAmb,LIMITS.tempAmb);
-  applyGauge('#gHr','bHr',state.hr,LIMITS.hr);
-  applyGauge('#gSpo2','bSpo2',state.spo2,LIMITS.spo2);
-  applyGauge('#gFall','bFall',state.accel,LIMITS.accel);
-  applyGauge('#gTrap','bTrap',state.trapTime,LIMITS.trap);
-  // bars hud
-  $('#barHr').style.width=Math.min(100, Math.max(3, Math.round((state.hr-40)/100*100)))+'%';
-  $('#barHr').className= state.hr>LIMITS.hr.critHigh||state.hr<LIMITS.hr.critLow?'crit': state.hr>LIMITS.hr.warnHigh||state.hr<LIMITS.hr.warnLow?'warn':'ok';
-  $('#barSpo2').style.width=Math.round(state.spo2)+'%';
-  $('#barSpo2').className= state.spo2<LIMITS.spo2.critLow?'crit': state.spo2<LIMITS.spo2.warnLow?'warn':'ok';
-  // heat glow
-  let hg=$('#heatGlow');
-  if(state.tempBody>37.5 || state.tempAmb>35){
-    let intensity=Math.min(1, (state.tempBody-37.2)/1.5 + (state.tempAmb-35)/20);
-    hg.style.opacity=String(intensity*0.55);
-    hg.style.background=`radial-gradient(400px 300px at 30% 30%, rgba(255,80,0,${0.35*intensity}), transparent 70%)`;
-  } else hg.style.opacity='0';
-  // trapped dust already
-  // mini crit
-  toggleMiniCrit('#miniTemp', state.tempBody>=LIMITS.tempBody.warn);
-  toggleMiniCrit('#miniHr', state.hr>LIMITS.hr.warnHigh || state.hr<LIMITS.hr.warnLow);
-  toggleMiniCrit('#miniSpo2', state.spo2<LIMITS.spo2.warnLow);
-  // chart history
-  const stamp=nowStr();
-  history.hr.push(Math.round(state.hr));
-  history.spo2.push(Math.round(state.spo2));
-  history.temp.push(parseFloat(state.tempBody.toFixed(1)));
-  history.tempAmb.push(parseFloat(state.tempAmb.toFixed(1)));
-  history.accel.push(parseFloat(state.accel.toFixed(2)));
-  history.trap.push(Math.round(state.trapTime));
-  history.time.push(stamp);
-  if(history.hr.length>histMax){
-    ['hr','spo2','temp','tempAmb','accel','trap','time'].forEach(k=>history[k].shift());
+  const r = mapStage.getBoundingClientRect();
+  ctx.clearRect(0,0,r.width,r.height);
+  // floor
+  ctx.save();
+  ctx.translate(view.ox, view.oy); ctx.scale(view.scale, view.scale);
+
+  // base floor
+  ctx.fillStyle = 'rgba(6,12,20,0.55)';
+  ctx.fillRect(0,0,world.w,world.h);
+  // streets grid (calles)
+  const stW=70, stH=64;
+  ctx.fillStyle = 'rgba(20,34,50,0.55)';
+  for(let c=-1;c<=9;c++) for(let rr=-1;rr<=6;rr++){
+    // draw street bands
   }
-  updateChart();
-  // broadcast
-  broadcast({type:'telemetry', state, reportId, time:stamp, date:dateStr()});
+  // simple grid lines (calles)
+  ctx.strokeStyle = 'rgba(30,52,78,0.5)'; ctx.lineWidth = 6/view.scale;
+  for(let c=0;c<=9;c++){ const x=(c+1)*stW + c*((world.w-(10)*stW)/9)*0; }
+  // draw street lines using computed cell layout
+  drawStreets();
+  drawBuildings();
+  drawHazards(r);
+  drawSafes();
+  drawVictims();
+  drawRescatists();
+  drawTargets();
+
+  ctx.restore();
+
+  // HUD scanlines/vignette (screen space)
+  ctx.save();
+  ctx.globalAlpha = 0.10;
+  ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 1;
+  for(let y=0;y<r.height;y+=3){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(r.width,y); ctx.stroke(); }
+  ctx.restore();
+  // vignette
+  const g = ctx.createRadialGradient(r.width/2,r.height/2,r.height*0.3, r.width/2,r.height/2,r.height*0.75);
+  g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.5)');
+  ctx.fillStyle = g; ctx.fillRect(0,0,r.width,r.height);
 }
 
-function toggleMiniCrit(sel, cond){
-  let el=$(sel); el.classList.toggle('crit',cond); el.style.borderColor=cond?'rgba(255,37,58,.4)':'rgba(255,255,255,.06)'; el.style.background=cond?'rgba(255,37,58,.10)':'rgba(255,255,255,.04)';
+function drawStreets(){
+  const W=world.w,H=world.h, cols=8, rows=5, stW=70, stH=64;
+  const cellW=(W-(cols+1)*stW)/cols, cellH=(H-(rows+1)*stH)/rows;
+  ctx.fillStyle='rgba(16,28,42,0.7)';
+  // vertical streets
+  for(let c=0;c<=cols;c++){ const x = c*(cellW+stW); ctx.fillRect(x,0,stW,H); }
+  // horizontal streets
+  for(let rr=0;rr<=rows;rr++){ const y = rr*(cellH+stH); ctx.fillRect(0,y,W,stH); }
 }
-function levelFor(val, lim){
-  // lim puede ser {warn, crit} (alto es malo), {warnLow, critLow} (bajo es malo)
-  // o {warnHigh, critHigh, warnLow, critLow} (ambos extremos, p. ej. FC)
-  const critHigh = lim.critHigh!==undefined ? lim.critHigh : lim.crit;
-  const warnHigh = lim.warnHigh!==undefined ? lim.warnHigh : lim.warn;
-  if(critHigh!==undefined && val>=critHigh) return 'crit';
-  if(lim.critLow!==undefined && val<=lim.critLow) return 'crit';
-  if(warnHigh!==undefined && val>=warnHigh) return 'warn';
-  if(lim.warnLow!==undefined && val<=lim.warnLow) return 'warn';
+function drawBuildings(){
+  for(const o of world.buildings){
+    ctx.fillStyle='#1a2738'; ctx.strokeStyle='#243a55'; ctx.lineWidth=1.5;
+    ctx.fillRect(o.x,o.y,o.w,o.h); ctx.strokeRect(o.x,o.y,o.w,o.h);
+    // ventanas
+    ctx.fillStyle='rgba(60,90,130,0.25)';
+    for(let wx=o.x+8;wx<o.x+o.w-8;wx+=18) for(let wy=o.y+8;wy<o.y+o.h-8;wy+=18){
+      ctx.fillRect(wx,wy,7,7);
+    }
+  }
+  for(const o of world.collapsed){
+    ctx.fillStyle='#0e1620'; ctx.strokeStyle='#3a2a1a';
+    // forma irregular de escombros
+    ctx.beginPath();
+    const n=10, px=o.x, py=o.y, pw=o.w, ph=o.h;
+    for(let i=0;i<=n;i++){ const t=i/n; const x=px + t*pw + (i%2?rand(-6,6):0);
+      const y = (i===0?py: i===n?py+ph : py + ph*0.5 + Math.sin(t*6.28)*ph*0.3);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    for(let i=n;i>=0;i--){ const t=i/n; const x=px + t*pw + (i%2?rand(-6,6):0);
+      const y = (i===n?py+ph: i===0?py : py + ph*0.5 + Math.sin(t*6.28+2)*ph*0.3);
+      ctx.lineTo(x,y); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    // detritos
+    ctx.fillStyle='#2a2018';
+    for(let i=0;i<14;i++){ ctx.fillRect(o.x+rand(0,o.w), o.y+rand(0,o.h), rand(3,8), rand(3,8)); }
+  }
+}
+function drawHazards(r){
+  for(const h of world.hazards){
+    if(h.type==='fire'){
+      const flick = 0.7+Math.sin(h.t*8)*0.3;
+      const g = ctx.createRadialGradient(h.x,h.y,2, h.x,h.y,h.r*flick);
+      g.addColorStop(0,'rgba(255,240,180,0.95)');
+      g.addColorStop(0.4,'rgba(255,120,20,0.85)');
+      g.addColorStop(1,'rgba(120,20,0,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(h.x,h.y,h.r*flick,0,6.28); ctx.fill();
+      // llamas
+      ctx.fillStyle='rgba(255,180,40,0.5)';
+      for(let i=0;i<6;i++){ const a=h.t*2+i; const rr=h.r*0.5*Math.abs(Math.sin(a));
+        ctx.beginPath(); ctx.arc(h.x+Math.cos(a)*rr, h.y+Math.sin(a)*rr, rand(4,9),0,6.28); ctx.fill(); }
+    } else if(h.type==='gas'){
+      const puff = 0.6+Math.sin(h.t*1.5)*0.2;
+      ctx.fillStyle='rgba(155,107,255,0.12)';
+      ctx.beginPath(); ctx.arc(h.x,h.y,h.r*puff,0,6.28); ctx.fill();
+      ctx.strokeStyle='rgba(180,150,255,0.35)'; ctx.lineWidth=2;
+      for(let i=0;i<3;i++){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r*(0.3+i*0.25)*puff,0,6.28); ctx.stroke(); }
+      ctx.fillStyle='rgba(200,180,255,0.5)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('☁️ gas', h.x, h.y);
+    } else if(h.type==='power'){
+      ctx.strokeStyle='rgba(255,220,60,0.6)'; ctx.lineWidth=2; ctx.setLineDash([6,6]);
+      ctx.beginPath(); ctx.moveTo(h.x1,h.y1); ctx.lineTo(h.x2,h.y2); ctx.stroke();
+      ctx.setLineDash([]);
+      // cruces de peligro
+      ctx.fillStyle='rgba(255,220,60,0.7)';
+      for(let t=0;t<=1;t+=0.1){ const x=lerp(h.x1,h.x2,t), y=lerp(h.y1,h.y2,t);
+        ctx.fillRect(x-1,y-1,3,3); }
+    }
+  }
+}
+function drawSafes(){
+  for(const s of world.safes){
+    const pulse = 0.5+Math.sin(state.time*3)*0.5;
+    ctx.fillStyle='rgba(168,255,56,0.10)';
+    ctx.beginPath(); ctx.arc(s.x,s.y,46+pulse*8,0,6.28); ctx.fill();
+    ctx.strokeStyle='rgba(168,255,56,0.8)'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.arc(s.x,s.y,32,0,6.28); ctx.stroke();
+    ctx.strokeStyle='#a8ff38'; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(s.x-14,s.y); ctx.lineTo(s.x+14,s.y);
+    ctx.moveTo(s.x,s.y-14); ctx.lineTo(s.x,s.y+14); ctx.stroke();
+    ctx.fillStyle='#a8ff38'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('PUnto SEGURO', s.x, s.y-44);
+  }
+  // base
+  const b=world.base;
+  ctx.fillStyle='rgba(0,170,255,0.10)';
+  ctx.beginPath(); ctx.arc(b.x,b.y,40,0,6.28); ctx.fill();
+  ctx.strokeStyle='#00a8ff'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.arc(b.x,b.y,28,0,6.28); ctx.stroke();
+  ctx.fillStyle='#00a8ff'; ctx.font='bold 10px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('BASE', b.x, b.y-38);
+  ctx.fillText('RESCATE', b.x, b.y-27);
+}
+function drawVictims(){
+  for(const v of victims){
+    if(v.dead) continue;
+    const pulse = 0.5+Math.sin(state.time*4+v.t)*0.5;
+    if(!v.found){
+      // señal pulsante (incógnita)
+      ctx.strokeStyle='rgba(255,174,0,0.5)'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(v.x,v.y,16+pulse*6,0,6.28); ctx.stroke();
+      ctx.fillStyle='rgba(255,174,0,0.9)'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('?', v.x, v.y+5);
+    } else {
+      const col = v.atrapado ? '#ff6ec7' : '#ffae00';
+      ctx.fillStyle=col; ctx.beginPath(); ctx.arc(v.x,v.y,9,0,6.28); ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.lineWidth=1.5; ctx.stroke();
+      if(v.state==='carrying'){ ctx.font='9px sans-serif'; ctx.fillText('🤚', v.x, v.y-14); }
+      if(v.atrapado){ ctx.strokeStyle='rgba(155,107,255,0.6)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.arc(v.x,v.y,16,0,6.28); ctx.stroke(); }
+      // salud
+      const hp = clamp(v.health,0,100);
+      const hpc = hp>50?'#a8ff38':hp>25?'#ffae00':'#ff2d45';
+      ctx.fillStyle=hpc; ctx.fillRect(v.x-12, v.y-24, 24*(hp/100), 3);
+      ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.strokeRect(v.x-12, v.y-24, 24, 3);
+    }
+  }
+}
+function drawRescatists(){
+  for(const r of rescuers){
+    if(r.dead){ // cruce
+      ctx.strokeStyle='#ff2d45'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(r.x-12,r.y-12); ctx.lineTo(r.x+12,r.y+12);
+      ctx.moveTo(r.x+12,r.y-12); ctx.lineTo(r.x-12,r.y+12); ctx.stroke();
+      continue;
+    }
+    // el cuerpo
+    ctx.save();
+    ctx.translate(r.x,r.y);
+    // glow
+    ctx.fillStyle = r.color+'33';
+    ctx.beginPath(); ctx.arc(0,0,r.radius+8,0,6.28); ctx.fill();
+    // cuerpo
+    ctx.fillStyle = r.color;
+    ctx.beginPath(); ctx.arc(0,0,r.radius,0,6.28); ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=2; ctx.stroke();
+    // direccion
+    ctx.rotate(r.angle);
+    ctx.fillStyle='rgba(0,0,0,0.55)';
+    ctx.beginPath(); ctx.moveTo(r.radius,0); ctx.lineTo(r.radius-7,-5); ctx.lineTo(r.radius-7,5); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    // atrapado/free
+    if(r.state==='trapped'){
+      ctx.strokeStyle='#9b6bff'; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.arc(r.x,r.y,r.radius+6,0,6.28); ctx.stroke();
+    }
+    if(r.state==='down'){
+      ctx.strokeStyle='#ff2d45'; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.arc(r.x,r.y,r.radius+6,0,6.28); ctx.stroke();
+    }
+    // etiqueta MR con telemetría
+    drawVitalTag(r);
+    // selection
+    if(selected===r){
+      ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2.5;
+      ctx.setLineDash([5,4]);
+      ctx.beginPath(); ctx.arc(r.x,r.y,r.radius+12,0,6.28); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+}
+function drawVitalTag(r){
+  const lvl = levelFor(r);
+  const tx = r.x, ty = r.y - r.radius - 20;
+  const w = 118, h = 30;
+  ctx.save();
+  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = 'rgba(6,12,20,0.85)';
+  ctx.strokeStyle = lvl==='crit'?'rgba(255,45,69,0.8)':lvl==='warn'?'rgba(255,174,0,0.7)':'rgba(0,229,255,0.6)';
+  ctx.lineWidth = 1.5;
+  roundRect(tx-w/2, ty-h, w, h, 7); ctx.fill(); ctx.stroke();
+  // color stripe
+  ctx.fillStyle = r.color;
+  ctx.fillRect(tx-w/2, ty-h, 4, h);
+  ctx.fillStyle = '#e8f2ff'; ctx.font='bold 10px Consolas,monospace'; ctx.textAlign='left';
+  ctx.fillText(r.name, tx-w/2+9, ty-h+12);
+  ctx.font='9px Consolas,monospace'; ctx.fillStyle='#8198b0';
+  const hrL = levelForHR(r.hr), spL=levelForSpo2(r.spo2), tL=levelForTemp(r.temp);
+  const hrCol = hrL==='crit'?'#ff2d45':hrL==='warn'?'#ffae00':'#a8ff38';
+  const spCol = spL==='crit'?'#ff2d45':spL==='warn'?'#ffae00':'#a8ff38';
+  const tCol = tL==='crit'?'#ff2d45':tL==='warn'?'#ffae00':'#a8ff38';
+  ctx.fillStyle=hrCol; ctx.fillText('HR '+Math.round(r.hr), tx-w/2+9, ty-h+24);
+  ctx.fillStyle=spCol; ctx.fillText('SpO₂ '+Math.round(r.spo2)+'%', tx-w/2+44, ty-h+24);
+  ctx.fillStyle=tCol; ctx.fillText('T '+r.temp.toFixed(1)+'°', tx-w/2+92, ty-h+24);
+  // banderas
+  let flag='';
+  if(r.state==='trapped') flag='⛔ ATRAPTADO';
+  else if(r.state==='down') flag='⚠ BAJO';
+  else if(r.carrying) flag='🤚 Llevando';
+  if(flag){ ctx.fillStyle='#fff'; ctx.font='bold 9px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(flag, tx, ty-h-6); }
+  ctx.restore();
+}
+function drawTargets(){
+  for(const r of rescuers){
+    if(!r.target) continue;
+    const pulse = 0.5+Math.sin(state.time*6)*0.5;
+    ctx.strokeStyle='rgba(255,174,0,'+(0.5+pulse*0.4)+')'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(r.target.x, r.target.y, 10+pulse*6, 0, 6.28); ctx.stroke();
+    ctx.strokeStyle='rgba(255,174,0,0.8)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(r.target.x-8,r.target.y); ctx.lineTo(r.target.x+8,r.target.y);
+    ctx.moveTo(r.target.x,r.target.y-8); ctx.lineTo(r.target.x,r.target.y+8); ctx.stroke();
+  }
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+// ---------- Vitals logic ----------
+function envAt(x,y){
+  let heat=false, gas=false, power=false;
+  for(const h of world.hazards){
+    if(h.type==='fire' && dist(x,y,h.x,h.y)<h.r+10) heat=true;
+    if(h.type==='gas' && dist(x,y,h.x,h.y)<h.r+10) gas=true;
+    if(h.type==='power' && pointToSegment(x,y,h.x1,h.y1,h.x2,h.y2)<16) power=true;
+  }
+  return {heat,gas,power};
+}
+function pointToSegment(px,py,x1,y1,x2,y2){
+  const dx=x2-x1, dy=y2-y1; const l2=dx*dx+dy*dy;
+  let t = l2? ((px-x1)*dx+(py-y1)*dy)/l2 : 0; t=clamp(t,0,1);
+  return dist(px,py, x1+t*dx, y1+t*dy);
+}
+function levelForHR(hr){ const t=CFG.thresholds.hr; if(hr>t.critHigh||hr<t.critLow) return 'crit'; if(hr>t.warnHigh||hr<t.warnLow) return 'warn'; return 'ok'; }
+function levelForSpo2(sp){ const t=CFG.thresholds.spo2; if(sp<t.crit) return 'crit'; if(sp<t.warn) return 'warn'; return 'ok'; }
+function levelForTemp(tp){ const t=CFG.thresholds.temp; if(tp>=t.crit) return 'crit'; if(tp>=t.warn) return 'warn'; return 'ok'; }
+function levelForEnergy(e){ const t=CFG.thresholds.energy; if(e<=t.crit) return 'crit'; if(e<=t.warn) return 'warn'; return 'ok'; }
+function levelFor(r){
+  const lv=[levelForHR(r.hr),levelForSpo2(r.spo2),levelForTemp(r.temp),levelForEnergy(r.energy)];
+  if(lv.includes('crit')) return 'crit';
+  if(lv.includes('warn')) return 'warn';
   return 'ok';
 }
-function applyGauge(cardSel, barId, val, lim){
-  let card=$(cardSel), bar=$('#'+barId);
-  if(!card || !bar) return;
-  let level=levelFor(val,lim);
-  card.classList.toggle('crit',level==='crit'); card.classList.toggle('warn',level==='warn');
-  bar.className=level;
-  // width
-  let pct;
-  if(cardSel==='#gHr') pct=Math.min(100,Math.max(5, (val-40)/100*100));
-  else if(cardSel==='#gSpo2') pct=val;
-  else if(cardSel==='#gTempBody') pct=Math.max(5,Math.min(100,(val-36)/4*100));
-  else if(cardSel==='#gTempAmb') pct=Math.max(5,Math.min(100,(val-18)/40*100));
-  else if(cardSel==='#gFall') pct=Math.min(100,val/3*100);
-  else if(cardSel==='#gTrap') pct=Math.min(100,val/12*100);
-  else pct=50;
-  bar.style.width=pct+'%';
-  let subs={
-    '#gTempBody': level==='crit'?'¡Hipertermia!': level==='warn'?'Elevada — pausar': 'Normal — 36.5 a 37.5°C',
-    '#gTempAmb': level==='crit'?'Evacuar zona': level==='warn'?'Usar EPP térmico':'Nave industrial',
-    '#gHr': level==='crit'?(val>LIMITS.hr.critHigh?'¡Taquicardia severa!':'¡Bradicardia!'): level==='warn'?(val>LIMITS.hr.warnHigh?'Taquicardia leve':'Bradicardia leve'):'Normal — 60 a 100 BPM',
-    '#gSpo2': level==='crit'?'¡Oxígeno crítico!': level==='warn'?'Bajo — ventilar':'Normal — 95 a 100%',
-    '#gFall': level==='crit'?'¡CAÍDA!': level==='warn'?'Movimiento brusco':'Estable',
-    '#gTrap': level==='crit'?'¡Atrapado!': level==='warn'?'Inmovilidad prolongada':'Vigilancia inmovilidad'
-  };
-  let subEl=card.querySelector('.sub');
-  if(subEl){
-    if(cardSel==='#gFall') subEl.textContent=`${subs[cardSel]} • ${val.toFixed(2)} g`;
-    else if(cardSel==='#gTrap') subEl.textContent=`${subs[cardSel]} • ${val.toFixed(0)}s inmóvil`;
-    else subEl.textContent=subs[cardSel];
+
+function updateVitals(r, dt){
+  const env = envAt(r.x, r.y);
+  const moving = !!r.target;
+  let hr = CFG.thresholds.hr.base;
+  let sp = CFG.thresholds.spo2.base;
+  let tp = CFG.thresholds.temp.base;
+  let en = CFG.thresholds.energy.base;
+  if(r.carrying){ hr+=26; tp+=0.8; en-=30; }
+  if(moving){ hr+=13; en-=12; }
+  if(r.state==='dig'){ hr+=15; en-=24; tp+=0.3; }
+  if(r.state==='trapped'){ hr+=18; sp-=14; en-=14; }
+  if(r.state==='down'){ hr+=6; sp-=7; }
+  if(env.heat){ hr+=9; tp+=1.0; en-=6; }
+  if(env.gas){ sp-=21; hr+=7; }
+  if(env.power){ en-=11; }
+  // recuperación si seguro e inactivo
+  const safeIdle = !moving && !r.carrying && r.state!=='dig' && r.state!=='trapped' && r.state!=='down' && !env.heat && !env.gas && !env.power;
+  if(safeIdle){ en += 2.0; } // recupera energía lentamente en reposo
+
+  const k = 1.15;
+  r.hr  = clamp(lerp(r.hr, hr, Math.min(1,dt*k)), 30, 200);
+  r.spo2 = clamp(lerp(r.spo2, sp, Math.min(1,dt*k)), 50, 100);
+  r.temp = clamp(lerp(r.temp, tp, Math.min(1,dt*0.7)), 34, 43);
+  r.energy = clamp(lerp(r.energy, en, Math.min(1,dt*0.8)), 0, 100);
+
+  r.flashT = Math.max(0, r.flashT-dt);
+
+  // estados críticos
+  if(r.state!=='trapped' && r.state!=='down'){
+    const crit = r.energy<=0 || r.spo2<85 || r.hr>145;
+    if(crit){ r.downTimer += dt; if(r.downTimer>3){ r.state='down'; r.needHelp=true; r.target=null; r.mode='down'; if(r.carrying) dropVictim(r); addLog('⚠ '+r.name+' INCAPACITADO — necesita ayuda inmediata','crit'); alertSound(true); } }
+    else r.downTimer = 0;
+  }
+  if(r.state==='down'){
+    r.downTimer2 += dt;
+    if(r.downTimer2>40){ r.dead=true; addLog('☠ '+r.name+' NO RESPIRA — fallecido','crit'); alertSound(true); }
+  }
+  if(r.state==='trapped' && r.spo2<88){ r.downTimer += dt; if(r.downTimer>4){ r.state='down'; r.trapped=false; r.needHelp=true; r.target=null; addLog('⚠ '+r.name+' atrapado y sin oxígeno — cayó','crit'); alertSound(true);} }
+
+  r.needHelp = r.state==='down' || (levelFor(r)==='crit') || r.trapped;
+}
+
+// ---------- Movimiento / AI ----------
+function blocked(r,nx,ny){
+  for(const o of world.obstacles){
+    if(rectCircle(o, nx, ny, r.radius)) return true;
+  }
+  // respetar la grilla de navegación (no entrar en edificios/escombros)
+  const [gx,gy]=cellAt(nx,ny);
+  if(!navInBounds(gx,gy) || !nav.walk[gy][gx]) return true;
+  if(nx<r.radius||ny<r.radius||nx>world.w-r.radius||ny>world.h-r.radius) return true;
+  return false;
+}
+function rectCircle(o,cx,cy,rad){
+  const nx=clamp(cx,o.x,o.x+o.w), ny=clamp(cy,o.y,o.y+o.h);
+  return dist(cx,cy,nx,ny) < rad;
+}
+function moveWithCollision(r,dx,dy){
+  const nx=r.x+dx, ny=r.y+dy;
+  if(!blocked(r,nx,ny)){ r.x=nx; r.y=ny; return true; }
+  if(!blocked(r,r.x+dx,r.y)){ r.x+=dx; return true; }
+  if(!blocked(r,r.x,r.y+dy)){ r.y+=dy; return true; }
+  return false;
+}
+
+function updateRescuer(r, dt){
+  if(r.dead) return;
+  if(r.state==='trapped'){
+    r.freeProgress += dt/r.freeTime;
+    if(r.freeProgress>=1){ r.state='idle'; r.mode='idle'; r.target=null; r.trapped=false; addLog('✔ '+r.name+' liberado por equipo de rescate','good'); }
+    return;
+  }
+  if(r.state==='down'){
+    // busca ayuda automáticamente? no. espera.
+    return;
+  }
+  // DIG (extraer víctima)
+  if(r.state==='dig'){
+    r.digProgress += dt/r.digTime;
+    if(r.digProgress>=1){
+      // empieza a transportar
+      const v=r.victim;
+      r.carrying=true; r.victimRef=v; r.state='carry'; r.mode='carry';
+      v.state='carrying'; v.carriedBy=r;
+      r.digProgress=0; r.victim=null;
+      const s=nearestSafe(r.x,r.y); r.target={x:s.x,y:s.y,type:'safe'};
+      addLog('➜ '+r.name+' extrajo a una víctima — dirigiéndose al punto seguro','info');
+    }
+    return;
+  }
+  // riesgo de derrumbe secundario al BUSCAR en zonas de escombros
+  if(r.mode==='search' && !r.trapped){
+    let inRubble=false;
+    for(const o of world.collapsed){ if(r.x>o.x && r.x<o.x+o.w && r.y>o.y && r.y<o.y+o.h){ inRubble=true; break; } }
+    if(inRubble){
+      r.collapseRisk += dt;
+      if(r.collapseRisk > r.collapseThresh){
+        r.state='trapped'; r.trapped=true; r.needHelp=true; r.target=null; r.mode='trapped';
+        r.collapseRisk=0; r.collapseThresh=rand(8,13);
+        if(r.carrying) dropVictim(r);
+        addLog('⛔ '+r.name+' ATTRAPADO — derrumbe secundario','crit'); alertSound(true);
+      }
+    } else r.collapseRisk = Math.max(0, r.collapseRisk - dt);
+  }
+  // movimiento hacia objetivo (navegación A* )
+  if(r.target){
+    if(!r.path || !r.path.length){ r.path = findPath(r.x, r.y, r.target.x, r.target.y) || []; }
+    const wp = r.path.length ? r.path[0] : {x:r.target.x, y:r.target.y};
+    const dw = Math.hypot(wp.x-r.x, wp.y-r.y);
+    const dGoal = Math.hypot(r.target.x-r.x, r.target.y-r.y);
+    const speed = r.carrying ? 62 : 118;
+    let moved=false;
+    if(dw>3){
+      const ux=(wp.x-r.x)/dw, uy=(wp.y-r.y)/dw, step=speed*dt;
+      moved = moveWithCollision(r, ux*step, uy*step);
+      r.angle = Math.atan2(uy,ux);
+    }
+    r.stuckT = moved ? 0 : (r.stuckT||0)+dt;
+
+    if(dGoal < 14){                                   // llegó a la zona del objetivo
+      r.path.length=0; onArrive(r);
+    } else if(dw <= 3){                                // llegó a un waypoint
+      if(r.path.length>1){ r.path.shift(); r.stuckT=0; }
+      else { r.path.length=0; onArrive(r); }
+    } else if((r.stuckT||0) > 0.7){                    // bloqueado
+      if(r.path.length>1){ r.path.shift(); r.stuckT=0; }
+      else { r.path.length=0; onArrive(r); }           // no hay más camino: actuar aquí
+    }
+  } else {
+    // sin orden activa: patrulla / reacciona a víctimas conocidas
+    if(r.mode!=='search'){ r.mode='search'; }
+    if(!autoDispatch(r)) wander(r, dt);
   }
 }
 
-// Chart.js
-let chart;
-function initChart(){
-  const ctx=$('#chart').getContext('2d');
-  chart=new Chart(ctx,{
-    type:'line',
-    data:{labels:[], datasets:[
-      {label:'FC', data:[], borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,.12)', tension:.4, pointRadius:0, borderWidth:2},
-      {label:'SpO₂', data:[], borderColor:'#a8ff38', backgroundColor:'rgba(168,255,56,.12)', tension:.4, pointRadius:0, borderWidth:2},
-      {label:'Temp', data:[], borderColor:'#ffae00', backgroundColor:'rgba(255,174,0,.12)', tension:.4, pointRadius:0, borderWidth:2, yAxisID:'y1'}
-    ]},
-    options:{
-      animation:false, responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index', intersect:false},
-      scales:{
-        x:{display:false},
-        y:{min:40,max:190, grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#7e96ad', font:{size:9}}},
-        y1:{position:'right', min:35,max:41, grid:{display:false}, ticks:{color:'#ffae00', font:{size:9}}}
-      },
-      plugins:{legend:{labels:{color:'#cfe3ff', boxWidth:12, font:{size:10}}}}
+function wander(r, dt){
+  r.wanderT -= dt;
+  if(r.wanderT<=0){ r.wanderT = rand(1.2,2.6); r.wanderDir = rand(0,6.28); }
+  const speed = 40;
+  const dx=Math.cos(r.wanderDir)*speed*dt, dy=Math.sin(r.wanderDir)*speed*dt;
+  moveWithCollision(r, dx, dy);
+  r.angle = r.wanderDir;
+  // detectar víctimas cercanas
+  for(const v of victims){
+    if(v.dead||v.found) continue;
+    if(dist(r.x,r.y,v.x,v.y) < 70){ v.found=true; if(v.state==='atrapado') v.state='found'; else v.state='found';
+      addLog('🔭 '+r.name+' detectó una víctima ('+(v.atrapado?'atrapada':'herida')+')','info'); }
+  }
+}
+
+function onArrive(r){
+  if(!r.target) return;
+  if(r.target.type==='move'){ r.target=null; r.mode='idle'; }
+  else if(r.target.type==='rescue'){
+    const v=r.target.victim;
+    if(v && !v.dead && !v.rescued){
+      r.state='dig'; r.mode='rescue'; r.victim=v; r.digProgress=0; v.assignedTo=r;
+      r.digTime = v.atrapado? 7 : 5;
+      v.state='extracting';
+      r.target.victim=v;
+      addLog('⛏ '+r.name+' comenzando extracción ('+(v.atrapado?'atrapada':'herida')+')','info');
+    } else { if(v) v.assignedTo=null; r.target=null; r.path=[]; r.mode='search'; autoDispatch(r); }
+  }
+  else if(r.target.type==='safe'){
+    if(r.carrying && r.victimRef){
+      // entregar
+      r.victimRef.rescued=true; r.victimRef.state='delivered'; r.victimRef.dead=false;
+      r.carrying=false; r.victimRef=null;
+      rescuedCount++;
+      addLog('✅ '+r.name+' entregó a una víctima en punto seguro','good');
+      alertSound(false);
     }
+    r.target=null; r.mode='search'; r.state='idle'; r.carrying=false; r.victimRef=null; r.path=[];
+    r.hr = lerp(r.hr, 72, 0.3); // descanso
+    r.energy = Math.min(100, r.energy+18);
+    r.wanderT=0;
+    autoDispatch(r);
+  }
+  else if(r.target.type==='search'){ r.target=null; r.mode='search'; }
+}
+
+// Note: we store victim ref on rescuer via r.victim during dig; for carry we need ref.
+// Adjust: during dig completion we set r.victimRef.
+function dropVictim(r){
+  if(r.victimRef){ r.victimRef.state=r.victimRef.atrapado?'atrapado':'herido'; r.victimRef.found=true; r.victimRef.carriedBy=null; r.victimRef=null; }
+  r.carrying=false;
+}
+
+// patch dig completion to set victimRef (the carried victim)
+// (overridden in updateRescuer via r.victim; set victimRef there)
+
+// ---------- Víctimas ----------
+function updateVictims(dt){
+  for(const v of victims){
+    if(v.dead||v.rescued) continue;
+    v.t += dt;
+    const decay = v.atrapado ? 0.55 : 0.95;
+    // mientras es atendida (extracción/transporte) el deterioro se frena
+    const relief = (v.state==='extracting'||v.state==='carrying') ? 0.25 : 1;
+    v.health -= decay*dt*relief;
+    if(v.health<=0){ v.state='deceased'; v.dead=true; lostCount++; addLog('☠ Víctima '+v.id+' falleció por espera','crit'); }
+  }
+}
+
+
+// Asigna automáticamente la víctima conocida (detectada) más cercana y sin atender.
+// Así los rescatistas no se quedan vagando: el jugador sigue decidiendo las urgencias
+// desde el dispositivo (priorizar, oxígeno, evacuar).
+function autoDispatch(r){
+  if(!r || r.dead || r.carrying) return false;
+  if(r.state==='trapped'||r.state==='down'||r.state==='dig') return false;
+  if(r.holdUntil && state.time < r.holdUntil) return false; // el jugador ordenó patrullar
+  let best=null, bd=1e9;
+  for(const v of victims){
+    if(v.dead||v.rescued||v.carriedBy) continue;
+    if(v.state==='extracting'||v.state==='carrying'||v.state==='delivered') continue;
+    if(v.assignedTo && v.assignedTo!==r && !v.assignedTo.dead) continue;
+    const d=dist(r.x,r.y,v.x,v.y);
+    if(d<bd){ bd=d; best=v; }
+  }
+  if(best){ commandRescue(r,best); return true; }
+  // sin víctimas conocidas pendientes: vuelve a patrullar
+  r.target=null; r.path=[]; r.mode='search'; return false;
+}
+
+// ---------- Comandos ----------
+function commandMove(r, x, y){ if(r.dead||r.state==='trapped'||r.state==='down'||r.state==='dig') return; r.target={x,y,type:'move'}; r.mode='move'; r.path=null; }
+function commandSearch(r){ if(r.dead||r.state==='trapped'||r.state==='down'||r.state==='dig') return; r.mode='search'; r.target=null; r.path=null; r.holdUntil=state.time+10; addLog('🔍 '+r.name+' inició búsqueda de víctimas','info'); }
+function commandRescue(r, v){ if(r.dead||r.state==='trapped'||r.state==='down'||r.state==='dig') return;
+  if(!v||v.dead||v.rescued||v.carriedBy) return;
+  if(v.state==='extracting'||v.state==='carrying'||v.state==='delivered') return;
+  // si la víctima está dentro de un obstáculo (atrapada), el rescatista excava desde la celda caminable alcanzable más cercana
+  let tx=v.x, ty=v.y;
+  if(pointInObstacle(v.x,v.y,6)){ const nw=reachableNearestWalkable(r.x, r.y, v.x, v.y); tx=nw.x; ty=nw.y; }
+  v.assignedTo=r;
+  r.target={x:tx,y:ty,type:'rescue',victim:v}; r.mode='rescue'; r.path=null; addLog('🚑 '+r.name+' asignado a rescatar '+v.id,'info'); }
+function commandSafe(r){ if(r.dead||r.state==='trapped'||r.state==='down'||r.state==='dig') return; const s=nearestSafe(r.x,r.y); r.target={x:s.x,y:s.y,type:'safe'}; r.mode='carry'; r.path=null; addLog('🟢 '+r.name+' dirigiéndose a punto seguro','info'); }
+function commandCancel(r){ r.target=null; r.path=[]; r.mode='search'; r.holdUntil=state.time+10; addLog('⏹ '+r.name+' orden cancelada — patrullando','info'); }
+function commandFirstAid(r){
+  if(r.dead||r.state!=='down') return;
+  // primeros auxilios: recupera algo de energía y oxígeno
+  r.energy = clamp(r.energy+25,0,100); r.spo2 = clamp(r.spo2+10,50,100); r.hr = clamp(r.hr-12,30,200);
+  r.downTimer2 = Math.max(0, r.downTimer2-10);
+  if(r.downTimer2<=0){ r.state='idle'; r.mode='idle'; r.downTimer=0; addLog('🩹 '+r.name+' atendido — se recupera','good'); }
+  else addLog('🩹 Primeros auxilios a '+r.name+' (estabilizando)','warn');
+}
+
+// ---------- Ayuda remota (dispositivo) ----------
+function remoteAid(type){
+  const target = selected || rescuers.filter(r=>!r.dead).sort((a,b)=>critScore(b)-critScore(a))[0];
+  if(!target) return;
+  if(target.dead) return;
+  if(type==='o2'){
+    if(res.o2<=0){ addLog('🫁 Sin oxígeno disponible','warn'); return; }
+    res.o2--; target.spo2 = clamp(target.spo2 + 22, 50, 100);
+    addLog('🫁 Oxígeno enviado a '+target.name+' → SpO₂ '+Math.round(target.spo2)+'%','info');
+    if(target.state==='down' && target.spo2>90 && target.energy>15){ target.state='idle'; target.mode='idle'; target.downTimer=0; target.downTimer2=0; addLog('✔ '+target.name+' recuperó el conocimiento','good'); }
+  } else if(type==='water'){
+    if(res.water<=0){ addLog('💧 Sin agua disponible','warn'); return; }
+    res.water--; target.temp = clamp(target.temp - 1.4, 34, 43); target.hr = clamp(target.hr-8,30,200);
+    addLog('💧 Enfriamiento a '+target.name+' → '+target.temp.toFixed(1)+'°C','info');
+  } else if(type==='stimulant'||type==='stim'){
+    if(res.stimulant<=0){ addLog('⚡ Sin estimulante disponible','warn'); return; }
+    res.stimulant--; target.energy = clamp(target.energy + 35, 0, 100); target.hr = clamp(target.hr+8,30,200);
+    addLog('⚡ Estimulante a '+target.name+' → energía '+Math.round(target.energy),'info');
+    if(target.state==='down' && target.energy>25){ target.state='idle'; target.mode='idle'; target.downTimer=0; target.downTimer2=0; addLog('✔ '+target.name+' se levanta','good'); }
+  } else if(type==='equipo'){
+    if(res.equipo<=0){ addLog('🚑 Sin equipo de rescate disponible','warn'); return; }
+    if(target.state==='trapped'){
+      res.equipo--; target.freeProgress = 0.35; addLog('🚑 Equipo de rescate enviado a '+target.name+' (liberación en curso)','info');
+    } else if(target.state==='down'){
+      res.equipo--; target.downTimer2 = Math.max(0, target.downTimer2-12);
+      target.energy = clamp(target.energy+15,0,100); target.spo2=clamp(target.spo2+8,50,100);
+      addLog('🚑 Equipo de rescate evacuando a '+target.name,'warn');
+      if(target.downTimer2<=0){ target.state='idle'; target.mode='idle'; target.downTimer=0; addLog('✔ '+target.name+' evacuado y recuperado','good'); }
+    } else { addLog('🚑 Equipo de rescate no necesario en '+target.name,'warn'); return; }
+  }
+}
+function critScore(r){ let s=0; s+=clamp((140-r.hr)/100,0,2); s+=clamp((90-r.spo2)/10,0,3); s+=clamp((r.temp-38)/2,0,2); s+=clamp((40-r.energy)/30,0,3); if(r.trapped)s+=3; if(r.state==='down')s+=4; return s; }
+
+// ---------- Input ----------
+function getWorld(ev){
+  const r = mapStage.getBoundingClientRect();
+  const sx = ev.clientX - r.left, sy = ev.clientY - r.top;
+  return S2W(sx,sy);
+}
+canvas.addEventListener('mousedown', ev=>{
+  if(!state.running||state.paused) return;
+  if(ev.button!==0) return;
+  const [wx,wy] = getWorld(ev);
+  // ¿click en víctima?
+  const v = pickVictim(wx,wy);
+  if(v){ if(selected) commandRescue(selected, v); else { selected=null; renderPanel(); } return; }
+  // ¿click en rescatista?
+  const r = pickRescuer(wx,wy);
+  if(r){ selected=r; dragFrom={x:wx,y:wy, moved:false}; renderPanel(); return; }
+  // ¿click en punto seguro?
+  const s = pickSafe(wx,wy);
+  if(s){ if(selected) commandSafe(selected); return; }
+  // mover seleccionado
+  if(selected){ dragFrom={x:wx,y:wy,moved:false}; }
+});
+canvas.addEventListener('mousemove', ev=>{
+  if(!dragFrom) return;
+  const [wx,wy] = getWorld(ev);
+  if(dist(wx,wy,dragFrom.x,dragFrom.y)>8){ dragFrom.moved=true; }
+});
+canvas.addEventListener('mouseup', ev=>{
+  if(!dragFrom) return;
+  const [wx,wy] = getWorld(ev);
+  if(dragFrom.moved && selected){ commandMove(selected, wx, wy); }
+  dragFrom=null;
+});
+canvas.addEventListener('wheel', ev=>{
+  // zoom simple
+  ev.preventDefault();
+  const factor = ev.deltaY<0?1.1:0.9;
+  view.scale = clamp(view.scale*factor, 0.3, 2.5);
+  fitViewKeep();
+}, {passive:false});
+function fitViewKeep(){ /* keep centered */ const r=mapStage.getBoundingClientRect(); view.ox=(r.width-world.w*view.scale)/2; view.oy=(r.height-world.h*view.scale)/2; }
+
+function pickRescuer(wx,wy){ for(const r of rescuers){ if(!r.dead && dist(wx,wy,r.x,r.y)<22) return r; } return null; }
+function pickVictim(wx,wy){ for(const v of victims){ if(!v.dead && !v.rescued && dist(wx,wy,v.x,v.y)<20) return v; } return null; }
+function pickSafe(wx,wy){ for(const s of world.safes){ if(dist(wx,wy,s.x,s.y)<40) return s; } return null; }
+
+// touch support (basic)
+canvas.addEventListener('touchstart', ev=>{ if(ev.touches[0]){ const t=ev.touches[0]; canvas.dispatchEvent(new MouseEvent('mousedown',{clientX:t.clientX,clientY:t.clientY,button:0})); } }, {passive:true});
+canvas.addEventListener('touchend', ev=>{ if(ev.changedTouches[0]){ const t=ev.changedTouches[0]; canvas.dispatchEvent(new MouseEvent('mouseup',{clientX:t.clientX,clientY:t.clientY})); } }, {passive:true});
+
+// ---------- UI Panel ----------
+function renderPanel(){
+  // lista de rescatistas
+  const list = $('#rescatList'); list.innerHTML='';
+  for(const r of rescuers){
+    const lvl=levelFor(r);
+    const card=document.createElement('div');
+    card.className='rescat-card'+(selected===r?' sel':'');
+    let flags='';
+    if(r.state==='trapped') flags+='<span class="rc-flag trapped">⛔ ATRAPTADO</span>';
+    if(r.state==='down') flags+='<span class="rc-flag down">⚠ BAJO</span>';
+    if(r.carrying) flags+='<span class="rc-flag carry">🤚 Llevando</span>';
+    if(r.needHelp && r.state!=='down' && r.state!=='trapped') flags+='<span class="rc-flag help">! NECESITA AYUDA</span>';
+    const hrL=levelForHR(r.hr),spL=levelForSpo2(r.spo2),tL=levelForTemp(r.temp),eL=levelForEnergy(r.energy);
+    card.innerHTML =
+      '<div class="rc-avatar" style="background:'+r.color+'">'+r.name.slice(-2)+'</div>'+
+      '<div class="rc-main">'+
+        '<div class="rc-name">'+r.name+' '+(flags?flags:'')+'</div>'+
+        '<div class="rc-role">'+r.role+'</div>'+
+        '<div class="rc-vitals">'+
+          '<div class="rc-v '+hrL+'"><span>HR</span><b>'+Math.round(r.hr)+'</b></div>'+
+          '<div class="rc-v '+spL+'"><span>SpO₂</span><b>'+Math.round(r.spo2)+'</b></div>'+
+          '<div class="rc-v '+tL+'"><span>Temp</span><b>'+r.temp.toFixed(1)+'°</b></div>'+
+          '<div class="rc-v '+eL+'"><span>Energía</span><b>'+Math.round(r.energy)+'</b></div>'+
+        '</div>'+
+      '</div>';
+    card.addEventListener('click', ()=>{ selected=r; renderPanel(); });
+    list.appendChild(card);
+  }
+  // detail
+  const det=$('#detail');
+  if(!selected){ det.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0">Selecciona un rescatista para ver telemetría y enviar ayuda a distancia.</div>'; return; }
+  const r=selected;
+  const lvl=levelFor(r);
+  const pct=(val,min,max)=>clamp(((val-min)/(max-min))*100,0,100);
+  det.innerHTML =
+    '<div class="detail-hd"><div class="rc-avatar" style="background:'+r.color+';width:42px;height:42px;font-size:13px">'+r.name.slice(-2)+'</div>'+
+    '<div><h4>'+r.name+'</h4><p>'+r.role+' · estado '+(lvl==='crit'?'CRÍTICO':lvl==='warn'?'ADVERTENCIA':'NORMAL')+'</p></div></div>'+
+    '<div class="vitals-grid">'+
+      '<div class="vital"><span>Frecuencia cardíaca</span><b>'+Math.round(r.hr)+' <small style="font-size:10px;color:var(--muted)">bpm</small></b><div class="bar"><i style="width:'+pct(r.hr,40,160)+'%;background:'+(hrCol(r.hr))+'"></i></div></div>'+
+      '<div class="vital"><span>SpO₂</span><b>'+Math.round(r.spo2)+' <small style="font-size:10px;color:var(--muted)">%</small></b><div class="bar"><i style="width:'+pct(r.spo2,80,100)+'%;background:'+(spCol(r.spo2))+'"></i></div></div>'+
+      '<div class="vital"><span>Temperatura</span><b>'+r.temp.toFixed(1)+' <small style="font-size:10px;color:var(--muted)">°C</small></b><div class="bar"><i style="width:'+pct(r.temp,36,40)+'%;background:'+(tpCol(r.temp))+'"></i></div></div>'+
+      '<div class="vital"><span>Energía</span><b>'+Math.round(r.energy)+' <small style="font-size:10px;color:var(--muted)">%</small></b><div class="bar"><i style="width:'+r.energy+'%;background:'+(enCol(r.energy))+'"></i></div></div>'+
+    '</div>'+
+    '<div class="coord">📍 '+Math.round(r.x)+', '+Math.round(r.y)+' · '+(r.carrying?'transportando víctima':r.state==='trapped'?'atrapado':r.state==='down'?'incapacitado':r.state==='dig'?'extrayendo':r.mode==='search'?'búsqueda':'movimiento/en espera')+'</div>'+
+    '<div class="aid-grid">'+
+      aidBtn('o2','🫁','Oxígeno','+SpO₂','o2')+
+      aidBtn('water','💧','Agua/Enfriamiento','-Temp','water')+
+      aidBtn('stimulant','⚡','Estimulante','+Energía','stim')+
+      aidBtn('equipo','🚑','Equipo Rescate','Liberar/Evacuar','equipo')+
+    '</div>'+
+    '<div class="cmd-row">'+
+      '<button class="cmd" id="dSearch">🔍 Buscar víctimas</button>'+
+      '<button class="cmd" id="dSafe">🟢 A zona segura</button>'+
+      '<button class="cmd" id="dAid">🩹 Primeros auxilios</button>'+
+      '<button class="cmd" id="dCancel">✖ Cancelar</button>'+
+    '</div>';
+  $('#dSearch').onclick=()=>commandSearch(r);
+  $('#dSafe').onclick=()=>commandSafe(r);
+  $('#dAid').onclick=()=>commandFirstAid(r);
+  $('#dCancel').onclick=()=>commandCancel(r);
+  bindAidBtns();
+}
+function aidBtn(type,ico,nm,sub,cls){ return '<button class="aid '+cls+'" data-aid="'+type+'"><span class="ico">'+ico+'</span><span class="nm">'+nm+'</span><span class="qty">'+sub+' · '+res[type]+'</span></button>'; }
+function bindAidBtns(){
+  $$('.aid').forEach(b=>{
+    b.onclick=()=>remoteAid(b.dataset.aid);
+    b.disabled = res[b.dataset.aid]<=0;
   });
 }
-function updateChart(){
-  if(!chart) return;
-  chart.data.labels=[...history.time];
-  chart.data.datasets[0].data=[...history.hr];
-  chart.data.datasets[1].data=[...history.spo2];
-  chart.data.datasets[2].data=[...history.temp];
-  chart.update('none');
-}
-initChart();
+const $$ = s=>[...document.querySelectorAll(s)];
+function hrCol(v){const l=levelForHR(v);return l==='crit'?'#ff2d45':l==='warn'?'#ffae00':'#a8ff38';}
+function spCol(v){const l=levelForSpo2(v);return l==='crit'?'#ff2d45':l==='warn'?'#ffae00':'#a8ff38';}
+function tpCol(v){const l=levelForTemp(v);return l==='crit'?'#ff2d45':l==='warn'?'#ffae00':'#a8ff38';}
+function enCol(v){const l=levelForEnergy(v);return l==='crit'?'#ff2d45':l==='warn'?'#ffae00':'#a8ff38';}
 
-// Broadcast channel for external monitor
-let bc;
-try{ bc=new BroadcastChannel('guardian_mr'); }catch(e){ bc=null; }
-function broadcast(msg){
-  const payload={...msg, _ts:Date.now()};
-  if(bc) bc.postMessage(payload);
-  try{
-    // la telemetría y las alertas se guardan en claves distintas para que una
-    // no sobreescriba a la otra en el respaldo por localStorage
-    if(msg.type==='telemetry') localStorage.setItem('guardian_mr_last', JSON.stringify(payload));
-    else localStorage.setItem('guardian_mr_alert', JSON.stringify(payload));
-  }catch{}
-}
+// toolbar buttons
+$('#cmdSearch').onclick=()=>{ if(selected) commandSearch(selected); else addLog('Selecciona un rescatista','warn'); };
+$('#cmdSafe').onclick=()=>{ if(selected) commandSafe(selected); else addLog('Selecciona un rescatista','warn'); };
+$('#cmdAid').onclick=()=>{ if(selected) commandFirstAid(selected); else addLog('Selecciona un rescatista','warn'); };
+$('#cmdCancel').onclick=()=>{ if(selected) commandCancel(selected); };
 
-// Main tick
-function startTicker(){
-  if(ticker) clearInterval(ticker);
-  ticker=setInterval(()=>{ drift(); evaluate(); render(); },110);
+// ---------- Log / alertas ----------
+function addLog(msg, type='info'){
+  logs.unshift({t:nowStr(), msg, type});
+  if(logs.length>60) logs.pop();
+  if(type==='crit'||type==='warn') alerts++;
+  renderLog();
 }
-function start(){
-  running=true;
-  $('#tuto').style.display='none';
-  $('#avatarWrap').style.opacity='1'; $('#avatarWrap').style.pointerEvents='auto';
-  reportId=`RPT-2026-${String(reportNum).padStart(4,'0')}`;
-  updateClocks();
-  if(!ticker){
-    startTicker();
-    logSystem('Simulación iniciada — arnés GUARDIAN activo');
+function renderLog(){
+  const el=$('#log'); el.innerHTML='';
+  for(const l of logs){
+    const d=document.createElement('div'); d.className='log-item '+l.type;
+    d.innerHTML='<span class="t">'+l.t+'</span>'+l.msg;
+    el.appendChild(d);
   }
+}
+function alertSound(crit){
+  if(!audioCtx) return;
+  try{
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type='square';
+    o.frequency.setValueAtTime(crit?880:660, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(crit?440:330, audioCtx.currentTime+0.25);
+    g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.3);
+    o.start(); o.stop(audioCtx.currentTime+0.32);
+  }catch(e){}
+}
+let audioCtx=null;
+function unlockAudio(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+
+// ---------- Sync / monitor ----------
+let bc=null;
+try{ bc = new BroadcastChannel('terremoto_mr'); }catch(e){ bc=null; }
+function broadcastState(){
+  const payload={
+    type:'state', ts:Date.now(),
+    time:state.time, status:state.ended?'FIN':(state.running?'EN JUEGO':'LISTO'),
+    rescuers: rescuers.map(r=>({id:r.name,name:r.name,role:r.role,color:r.color,hr:r.hr,spo2:r.spo2,temp:r.temp,energy:r.energy,trapped:r.trapped,needHelp:r.needHelp,carrying:r.carrying,state:r.state,x:Math.round(r.x),y:Math.round(r.y),dead:r.dead})),
+    victims:{total:CFG.victims, rescued:rescuedCount, lost:lostCount},
+    resources:res, selected:selected?selected.name:null,
+  };
+  try{ if(bc) bc.postMessage(payload); }catch(e){}
+  try{ localStorage.setItem('terremoto_mr_state', JSON.stringify(payload)); }catch(e){}
+}
+if(bc){ bc.onmessage = e=>{ /* monitor could send commands here */ }; }
+
+// ---------- Clock ----------
+function updateClocks(){ $('#clock').textContent=nowStr(); $('#dateTxt').textContent=dateStr(); }
+setInterval(updateClocks, 1000); updateClocks();
+
+// ---------- Game loop ----------
+let rescuedCount=0, lostCount=0;
+let panelTimer=0;
+let lastTs=0;
+function loop(ts){
+  if(!lastTs) lastTs=ts;
+  let dt=(ts-lastTs)/1000; lastTs=ts;
+  dt=Math.min(dt,0.05);
+  const simDt = (state.running && !state.paused && !state.ended) ? dt*state.speed : 0;
+  if(simDt>0){
+    state.time += simDt;
+    for(const h of world.hazards) h.t += simDt;
+    updateVictims(simDt);
+    for(const r of rescuers){ updateRescuer(r, simDt); updateVitals(r, simDt); }
+    checkEnd();
+  }
+  // panel update throttled
+  panelTimer += dt;
+  if(panelTimer>0.12){ panelTimer=0; renderPanel(); updateProgress(); broadcastState(); }
+  render();
+  requestAnimationFrame(loop);
+}
+
+function updateProgress(){
+  $('#pRescued').textContent = rescuedCount+' / '+CFG.victims;
+  $('#pRescuedBar').style.width = (rescuedCount/CFG.victims*100)+'%';
+  $('#pLost').textContent = lostCount;
+  $('#pLostBar').style.width = (lostCount/CFG.victims*100)+'%';
+  const rem = Math.max(0, CFG.timeLimit - state.time);
+  const mm=String(Math.floor(rem/60)).padStart(2,'0'), ss=String(Math.floor(rem%60)).padStart(2,'0');
+  $('#timer').textContent = mm+':'+ss;
+  $('#timer').className='timer'+(rem<90?' crit':rem<180?' warn':'');
+  // victim list
+  const vl=$('#victimList'); vl.innerHTML='';
+  for(const v of victims){
+    if(v.rescued||v.dead) continue;
+    const col = v.atrapado?'#ff6ec7':'#ffae00';
+    const hp=clamp(v.health,0,100);
+    const hpc = hp>50?'#a8ff38':hp>25?'#ffae00':'#ff2d45';
+    const d=document.createElement('div'); d.className='vict';
+    d.innerHTML='<span class="vh" style="background:'+col+'"></span>'+v.id+(v.found?'':' (señal)')+'<span class="vhbar"><i style="width:'+hp+'%;background:'+hpc+'"></i></span>';
+    vl.appendChild(d);
+  }
+  // status led
+  const led=$('#led'), st=$('#statusTxt');
+  if(state.ended){ led.className='led crit'; st.textContent='FINALIZADO'; }
+  else if(!state.running){ led.className='led'; st.textContent='LISTO'; }
+  else {
+    let worst='ok';
+    for(const r of rescuers){ const l=levelFor(r); if(l==='crit'){worst='crit';break;} if(l==='warn') worst='warn'; }
+    led.className='led'+(worst==='crit'?' crit':worst==='warn'?' warn':'');
+    st.textContent = worst==='crit'?'ALERTA CRÍTICA':worst==='warn'?'ADVERTENCIA':'EN JUEGO';
+  }
+  // report number
+  state.report = Math.floor(state.time);
+  $('#repBadge').textContent = 'RPT-'+String(state.report).padStart(4,'0');
+}
+
+function checkEnd(){
+  if(state.ended) return;
+  const alive = rescuers.filter(r=>!r.dead).length;
+  if(rescuedCount>=CFG.victims){ endGame(true, 'Todas las víctimas llevadas a un punto seguro'); }
+  else if(alive===0){ endGame(false,'Todos los rescatistas cayeron'); }
+  else if(state.time>=CFG.timeLimit){
+    if(rescuedCount>=Math.ceil(CFG.victims/2)) endGame(true,'Tiempo agotado — objetivo cumplido');
+    else endGame(false,'Tiempo agotado');
+  }
+}
+function endGame(win, msg){
+  if(state.ended) return;
+  state.ended=true; state.running=false; state.win=win; broadcastState();
+  $('#ovTitle').textContent = win?'✅ OBJETIVO CUMPLIDO':'❌ MISIÓN FALLIDA';
+  $('#ovTitle').style.color = win?'#a8ff38':'#ff2d45';
+  $('#ovMsg').textContent = msg || (win?'Has coordinado el rescate de todas las víctimas.':'La misión no se completó.');
+  $('#ovRescued').textContent = rescuedCount;
+  $('#ovLost').textContent = lostCount;
+  $('#ovAlive').textContent = rescuers.filter(r=>!r.dead).length;
+  $('#overlay').classList.add('show');
+  addLog(win?'🎉 MISIÓN COMPLETADA':'❌ MISIÓN FALLIDA', win?'good':'crit');
+}
+
+// ---------- Init / start ----------
+function startGame(){
+  buildWorld();
+  rescuers = CFG.rescatistas.map(makeRescuer);
+  victims = [];
+  for(let i=0;i<CFG.victims;i++){ victims.push(makeVictim(i)); }
+  rescuedCount=0; lostCount=0; logs=[]; alerts=0;
+  res={...CFG.resources};
+  state.time=0; state.report=0; state.ended=false; state.running=true; state.paused=false;
+  selected=null;
+  $('#overlay').classList.remove('show');
+  addLog('▶ SIMULACIÓN INICIANDO — terremoto magnitude 7.1','info');
+  addLog('📡 Dispositivo MR conectado a '+rescatersCount()+' rescatistas','info');
+  renderPanel(); renderLog(); updateProgress();
   unlockAudio();
 }
-function logSystem(msg){
-  const el=document.createElement('div');
-  el.className='alert-item';
-  el.innerHTML=`<span>ℹ️</span><div><b>Sistema</b><div class="logtime">${nowStr()} • ${reportId}</div><div style="font-size:11px">${msg}</div></div>`;
-  $('#alertLog').prepend(el);
-}
+function rescatersCount(){ return rescuers.length; }
 
-// Controls
-$$('.scn').forEach(b=>{
-  b.addEventListener('click',()=>{
-    $$('.scn').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
-    let scn=b.dataset.scn;
-    if(!demoRunning) clearDemoTimers();
-    mode=scn;
-    setEnv(scn==='normal'?'normal':scn);
-    if(scn==='fall'){
-      // impulse
-      state.fall=true; state.accel=3.1; state.trapTime=4;
-      $('#fallFlash').classList.remove('on'); void $('#fallFlash').offsetWidth; $('#fallFlash').classList.add('on');
-      logSystem('Evento manual: simulación de CAÍDA');
-      demoTimers.push(setTimeout(()=>{ state.fall=false; },1200));
-      // revert to normal after
-      demoTimers.push(setTimeout(()=>{ if(mode==='fall'){ mode='normal'; setEnv('normal'); $$('.scn').forEach(x=>x.classList.remove('active')); $$('.scn').find(x=>x.dataset.scn==='normal').classList.add('active'); } },4000));
-    } else if(scn==='heat'){ logSystem('Evento: zona de calor extremo — temperatura en ascenso'); }
-    else if(scn==='trap'){ logSystem('Evento: espacio confinado — oxígeno descendiendo'); state.trapTime=0; state.trapped=false; }
-    else if(scn==='effort'){ logSystem('Evento: esfuerzo físico sostenido'); }
-    else logSystem('Retorno a condiciones normales');
-    if(!running) start();
-  });
-});
-$('#btnReset').addEventListener('click',()=>{
-  mode='normal'; setEnv('normal');
-  state={tempBody:36.8,tempAmb:24.2,hr:78,spo2:97,fall:false,trapped:false,trapTime:0,moving:false,accel:1.02,battery:state.battery,pos:{x:12.4,y:3.2,z:0.9}};
-  keys={}; posDir={x:0,y:0}; lastDriftTs=0;
-  $$('.scn').forEach(x=>x.classList.remove('active')); $$('.scn').find(x=>x.dataset.scn==='normal').classList.add('active');
-  $$('.k').forEach(k=>k.classList.remove('pressed'));
-  clearDemoTimers();
-  $('#alertOverlay').classList.remove('show');
-  logSystem('Reestablecido — signos normalizados');
-  // nuevo reporte (se recuerda entre recargas)
-  reportNum++;
-  reportId=`RPT-2026-${String(reportNum).padStart(4,'0')}`;
-  try{ localStorage.setItem('guardian_mr_report', String(reportNum)); }catch{}
-  lastAlertSig='';
-  history={hr:[],spo2:[],temp:[],tempAmb:[],accel:[],trap:[],time:[]};
-  updateClocks(); render();
-});
-$('#btnStart').addEventListener('click',()=>{
-  $$('.scn').find(x=>x.dataset.scn==='normal').classList.add('active');
-  start();
-});
-$('#btnDemo').addEventListener('click',()=>{
-  start(); autoDemo();
-});
-let demoTimers=[], demoRunning=false;
-function clearDemoTimers(){ demoTimers.forEach(clearTimeout); demoTimers=[]; demoRunning=false; }
-function autoDemo(){
-  clearDemoTimers();
-  demoRunning=true;
-  const seq=[['heat',4000],['normal',3000],['effort',4000],['trap',5000],['fall',3000],['normal',4000]];
-  let i=0;
-  function next(){
-    if(i>=seq.length){ demoRunning=false; return; }
-    let [scn,delay]=seq[i++];
-    document.querySelector(`.scn[data-scn="${scn}"]`).click();
-    demoTimers.push(setTimeout(next,delay));
-  }
-  next();
-}
-$('#btnThermal').addEventListener('click',()=>{
-  thermalOn=!thermalOn;
-  $('#btnThermal').classList.toggle('primary',thermalOn);
-  $('#hudMode').textContent= thermalOn?'TÉRMICO ON':'TÉRMICO OFF';
-  $('#hudMode').style.color= thermalOn?'var(--amber)':'var(--cyan)';
-  const img=$('#envImage');
-  if(thermalOn){
-    img.dataset.prevFilter=img.style.filter||'';
-    img.style.filter= nightOn ? 'none' : 'grayscale(1) sepia(1) hue-rotate(320deg) saturate(4) contrast(1.25)';
-    img.style.mixBlendMode='screen';
-  } else {
-    img.style.filter= nightOn ? 'contrast(1.3) saturate(0) brightness(1.2)' : (img.dataset.prevFilter||'contrast(1.05) saturate(1.1)');
-    img.style.mixBlendMode='normal';
-  }
-  logSystem(thermalOn?'Visor térmico activado':'Visor térmico desactivado');
-});
-let nightOn=false;
-$('#btnNitro').addEventListener('click',()=>{
-  nightOn=!nightOn;
-  $('#stage').classList.toggle('nitro',nightOn);
-  $('#btnNitro').classList.toggle('primary',nightOn);
-  if(thermalOn){ $('#envImage').style.filter='none'; }
-  else $('#envImage').style.filter= nightOn ? 'contrast(1.3) saturate(0) brightness(1.2)' : 'contrast(1.05) saturate(1.1)';
-  logSystem(nightOn?'Visor nocturno activado':'Visor diurno');
-});
-$('#btnAck').addEventListener('click',()=>{ $('#alertOverlay').classList.remove('show'); logSystem('Alerta acusada por operador'); });
-$('#btnOverlayAck').addEventListener('click',()=> $('#alertOverlay').classList.remove('show'));
-$('#btnOverlayCall').addEventListener('click',()=>{ alert('🚨 Brigada notificada — Enviando equipo a zona '+$('#envName').textContent+' ('+reportId+')'); $('#alertOverlay').classList.remove('show'); logSystem('Brigada despachada — emergencia en curso'); });
-$('#btnCall').addEventListener('click',()=>{ alert('📞 Llamada a brigada — Reporte '+reportId); logSystem('Llamada a brigada realizada'); });
-$('#btnTestAlert').addEventListener('click',()=>{
-  state.hr=148; state.spo2=89; state.tempBody=39.2; state.fall=true; state.accel=2.8;
-  setTimeout(()=>state.fall=false,1500);
-  if(!ticker){ running=true; startTicker(); }
-  evaluate(); render();
-});
-$('#btnExport').addEventListener('click',()=>{
-  if(!history.time.length){ logSystem('Sin datos para exportar — inicia la simulación'); return; }
-  let csv='hora,reporte,tempCorporal,tempAmbiente,hr,spo2,aceleracion_g,inmovilidad_s,atrapado\n';
-  for(let i=0;i<history.time.length;i++){
-    const inm=history.trap[i]||0;
-    csv+=`${history.time[i]||''},${reportId},${history.temp[i]??''},${history.tempAmb[i]??''},${history.hr[i]??''},${history.spo2[i]??''},${history.accel[i]??''},${inm},${inm>LIMITS.trap.crit?'SI':'NO'}\n`;
-  }
-  let blob=new Blob([csv],{type:'text/csv'}), url=URL.createObjectURL(blob), a=document.createElement('a');
-  a.href=url; a.download=reportId+'.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
-});
-$('#btnMonitor').addEventListener('click',()=> window.open('monitor.html','monitor','width=1100,height=780'));
-$('#btnShareMonitor').addEventListener('click',()=> window.open('monitor.html','monitor','width=1100,height=780'));
-let camOn=false;
-$('#btnCam').addEventListener('click',async()=>{
-  if(!camOn){
-    try{
-      let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-      $('#cam').srcObject=stream; $('#cam').classList.add('on'); camOn=true; $('#btnCam').textContent='⏹ Desactivar cámara'; logSystem('Passthrough MR: cámara activada');
-    }catch(e){ alert('No se pudo acceder a la cámara: '+e.message); }
-  } else {
-    $('#cam').srcObject=null; $('#cam').classList.remove('on'); camOn=false; $('#btnCam').textContent='📷 Activar Passthrough MR'; logSystem('Cámara desactivada');
-  }
-});
-$('#btnSound').addEventListener('click',()=>{ soundOn=!soundOn; $('#btnSound').textContent=soundOn?'🔊':'🔇'; if(soundOn) unlockAudio(); });
-let keys={};
-addEventListener('keydown',e=>{
-  if(['w','a','s','d'].includes(e.key.toLowerCase())){
-    keys[e.key.toLowerCase()]=true; updateMove();
-    let el=document.querySelector(`.k[data-k="${e.key.toLowerCase()}"]`); if(el) el.classList.add('pressed');
-    if(!running) start();
-  }
-});
-addEventListener('keyup',e=>{
-  if(['w','a','s','d'].includes(e.key.toLowerCase())){
-    keys[e.key.toLowerCase()]=false; updateMove();
-    let el=document.querySelector(`.k[data-k="${e.key.toLowerCase()}"]`); if(el) el.classList.remove('pressed');
-  }
-});
-function updateMove(){
-  posDir.x=(keys.d?1:0)-(keys.a?1:0);
-  posDir.y=(keys.s?1:0)-(keys.w?1:0);
-  state.moving= posDir.x!==0 || posDir.y!==0;
-}
+$('#btnStart').onclick=()=>{ unlockAudio(); startGame(); };
+$('#btnPause').onclick=()=>{ if(state.running){ state.paused=!state.paused; $('#btnPause').textContent=state.paused?'▶ CONTINUAR':'⏸ PAUSA'; addLog(state.paused?'⏸ Pausa':'▶ Reanudada','info'); } };
+$('#btnSpeed').onclick=()=>{ const seq=[1,2,3]; state.speed = state.speed>=3?1:state.speed*2; $('#btnSpeed').textContent=state.speed+'×'; };
+$('#ovBtn').onclick=()=>{ startGame(); };
 
-// Switch live/pause
-$('#swPause').addEventListener('click',()=>{
-  if(!ticker) return;
-  clearInterval(ticker); ticker=null;
-  running=false;
-  $('#swPause').classList.add('on'); $('#swLive').classList.remove('on');
-  logSystem('Telemetría pausada');
-});
-$('#swLive').addEventListener('click',()=>{
-  if(ticker) return;
-  $('#swLive').classList.add('on'); $('#swPause').classList.remove('on');
-  running=true; startTicker();
-  logSystem('Telemetría reanudada');
-});
-
-// Audio
-let audioCtx;
-function unlockAudio(){
+// MR passthrough
+$('#btnMR').onclick=async ()=>{
+  if(state.MRon){ stopMR(); return; }
   try{
-    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-    if(audioCtx.state==='suspended') audioCtx.resume();
-  }catch{}
-}
-function playSiren(){
-  try{
-    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-    if(audioCtx.state==='suspended') audioCtx.resume();
-    let o=audioCtx.createOscillator(), g=audioCtx.createGain();
-    o.type='sine'; o.frequency.value=880; g.gain.value=0.12; o.connect(g).connect(audioCtx.destination);
-    o.start(); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.7); o.stop(audioCtx.currentTime+0.71);
-    setTimeout(()=>{ let o2=audioCtx.createOscillator(), g2=audioCtx.createGain(); o2.frequency.value=660; g2.gain.value=0.12; o2.connect(g2).connect(audioCtx.destination); o2.start(); g2.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.7); o2.stop(audioCtx.currentTime+0.71); },320);
-  }catch{}
-}
+    if(!navigator.mediaDevices) throw new Error('no');
+    mrStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false});
+    mrVideo.srcObject = mrStream;
+    mrVideo.style.opacity = '0.5';
+    $('#mapBg').style.opacity='0.25';
+    state.MRon=true;
+    $('#btnMR').textContent='📷 MR ON';
+    addLog('📷 Passthrough MR activo — cámara real como fondo','info');
+  }catch(e){
+    addLog('📷 No se pudo acceder a la cámara — modo simulado','warn');
+  }
+};
+function stopMR(){ if(mrStream){ mrStream.getTracks().forEach(t=>t.stop()); mrStream=null; } mrVideo.srcObject=null; mrVideo.style.opacity='0'; $('#mapBg').style.opacity='1'; state.MRon=false; $('#btnMR').textContent='📷 MR Passthrough'; }
 
-// init
-updateClocks(); render();
+$('#btnMonitor').onclick=()=>{ window.open('monitor.html','_blank'); };
 
-// Try to copy uploaded image to workspace path if exists, fallback already set
+window.addEventListener('resize', ()=>{ resizeCanvas(); });
+resizeCanvas();
+// init world for preview (static)
+buildWorld();
+rescuers = CFG.rescatistas.map(makeRescuer);
+victims = []; for(let i=0;i<CFG.victims;i++) victims.push(makeVictim(i));
+renderPanel(); renderLog(); updateProgress();
+// Gancho de automatización: solo se expone si la URL trae ?test=1
+// (permite pruebas automáticas sin ensuciar la API pública del juego).
+if(location.search.includes('test=1')){
+  window.__TR = { setSel:(r)=>{selected=r;}, critScore, getRescuers:()=>rescuers, getVictims:()=>victims,
+    commandRescue, commandMove, commandSearch, commandSafe, remoteAid, checkEnd,
+    getCounts:()=>({rescuedCount,lostCount}), getSel:()=>selected, isEnded:()=>state.ended,
+    isWin:()=>!!state.win, findPath, updateRescuer };
+}
+requestAnimationFrame(loop);
+
+})();
 </script>
 </body>
 </html>
