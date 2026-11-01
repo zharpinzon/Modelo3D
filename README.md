@@ -1,85 +1,112 @@
-# GUARDIAN MR — Merged Reality Safety System
+# TERREMOTO MR — Centro de Control de Rescate
 
-**Juego interactivo de Realidad Mixta (Merged Reality / Mixed Reality) para simular el dispositivo torácico de la foto.**
+**Juego interactivo de Realidad Mixta (Merged Reality / Mixed Reality) de rescate tras un terremoto.**
 
-> Operario equipado con arnés inteligente que mide **temperatura corporal y ambiental, frecuencia cardíaca (HR), SpO₂ y caídas (acelerómetro)**. El juego expone al operario a condiciones reales de riesgo — **calor extremo, caídas de altura, atrapamiento en espacio confinado, esfuerzo físico** — y una **pantalla externa de centro de control** muestra mediciones en vivo con hora y número de reporte, disparando **alertas automáticas** cuando los valores salen de rango normal.
+> Varios **rescatistas** operan en una ciudad colapsada. Tú estás a distancia, frente al **dispositivo de telemetría**, y desde ahí ves en vivo su **SpO₂, frecuencia cardíaca, temperatura, energía, ubicación y si están atrapados o necesitan ayuda**. Tu trabajo es decidir **cómo resolver sus necesidades sin estar ahí** mientras ellos buscan a las personas atrapadas y las llevan a un **punto de encuentro seguro**.
 
 ---
 
 ## 🎮 Cómo jugar
 
-1. Abre `index.html` — es el **Visor MR del operario** (pantalla principal)
-2. Pulsa **INICIAR SIMULACIÓN** o **Ver demo automática**
-3. Abre la **Pantalla Externa** con el botón `⧉ Abrir Pantalla Externa` — es la segunda pantalla que ve el supervisor (también disponible como `monitor.html` en una ventana/segundo monitor independiente, sincronizada por `BroadcastChannel` + `localStorage`)
-4. Activa escenarios:
-   - 🔥 **Calor extremo** → temp ambiental 51°C, corporal 38.9°C, taquicardia, SpO₂ bajando
-   - ⚡ **Simular caída** → pico de acelerómetro 3.2g, flash blanco, HR se dispara, alerta crítica inmediata
-   - 🧱 **Atrapado / Confinado** → SpO₂ cae a 86%, inmovilidad progresiva, polvo y oscurecimiento en visor
-   - 🏃 **Esfuerzo físico** → HR sostenida alta, temp corporal sube
-   - Usa **WASD** para mover al operario (afecta HR/posición)
-5. Observa cómo la **pantalla externa** cambia a **CRÍTICO/ADVERTENCIA** y envía alerta sonora + log + vibración cuando HR >100, SpO₂ <95%, temp >37.8°C, caída detectada o atrapamiento >10s.
+1. Abre `index.html` — es el **Centro de Mando MR** (pantalla principal del jugador).
+2. Pulsa **▶ INICIAR SIMULACIÓN**.
+3. Elige un rescatista en la lista de la derecha (o haz clic sobre él en el mapa).
+4. Desde el **dispositivo** puedes, a distancia:
+   - 🫁 **Oxígeno** → sube el SpO₂ de un rescatista agotado
+   - 💧 **Agua / enfriamiento** → baja temperatura y frecuencia cardíaca
+   - ⚡ **Estimulante** → recupera energía
+   - 🚑 **Equipo de rescate** → libera a un rescatista atrapado o evacúa a uno incapacitado
+5. Da órdenes en el mapa: **🔍 Buscar víctimas**, **🟢 Ir a zona segura**, **🩹 Primeros auxilios**, **✖ Cancelar**.
+6. Abre la **pantalla externa** con `⧉ Centro de Control` (o el archivo `monitor.html` en un segundo monitor). Se sincroniza por `BroadcastChannel('terremoto_mr')` con respaldo en `localStorage`.
 
-## 📊 Pantalla externa — Mediciones
+**Objetivo:** rescatar a las 8 víctimas antes de que se agote el tiempo (6 min) o el oxígeno.
+**Derrota:** todos los rescatistas fuera de combate, o el tiempo termina con menos de la mitad de las víctimas rescatadas.
 
-La pantalla aparte (requisito clave del proyecto) muestra:
+### 🕹️ Controles
 
-- 🌡️ Temperatura corporal y ambiental (°C) con umbrales
-- ❤️ Frecuencia cardíaca (BPM) + barra y gráfico
-- 🫁 SpO₂ (%) 
-- ⚡ Caída (SÍ/NO) + acelerómetro en *g*
-- 🧱 Atrapado / inmovilidad + cronómetro
-- 🕒 **Hora** en vivo
-- 🧾 **Número de reporte** correlativo `RPT-2026-0001` (incrementa al reestablecer)
-- Gráfica de tendencia 45s, bitácora, conteo de alertas
+| Acción | Control |
+|---|---|
+| Seleccionar rescatista | Clic en su tarjeta o en el mapa |
+| Mover rescatista | Clic en el mapa con él seleccionado |
+| Órdenes y ayudas | Botones del panel derecho |
+| Passthrough MR | Botón `📷 MR Passthrough` |
+| Pausa / velocidad | `⏸ PAUSA` y selector de velocidad |
 
-Cuando 1+ valores no son normales → banner de alerta + alerta grande modal + sonido de sirena + notificación a brigada.
+---
+
+## 📟 El dispositivo — qué se puede ver
+
+Cada rescatista transmite:
+
+- ❤️ **Frecuencia cardíaca** (bpm) con umbrales
+- 🫁 **SpO₂** (%) — el indicador más crítico en derrumbes
+- 🌡️ **Temperatura corporal** (°C) — calor por esfuerzo y por incendios
+- ⚡ **Energía** (%) — se agota cargando víctimas y excavando
+- 📍 **Ubicación** en el mapa (coordenadas y punto en tiempo real)
+- 🧱 **Atrapado** — derrumbe secundario o zona de colapso
+- `!` **Necesita ayuda** — alerta directa al operador
+- 🤚 **Llevando víctima** / **extrayendo**
+
+Los umbrales se muestran en colores: **verde** normal, **ámbar** advertencia, **rojo** crítico (con alerta sonora).
+
+---
+
+## 🌍 El escenario
+
+- Ciudad de 1700 × 1050 con una grilla de calles (8 × 5 manzanas).
+- **~16 % de escombros** en la calle, edificios **colapsados**, y peligros: 🔥 incendio, ☣️ gas, ⚡ cables eléctricos.
+- **2 puntos de encuentro seguro** (los verdes del mapa) y una **base de mando** abajo al centro.
+- **8 víctimas**: atrapadas (⛏ excavación de 7 s) y heridas (5 s), con salud que decae con el tiempo.
+- **4 rescatistas**: búsqueda, médico, transporte y excavación; caen si su SpO₂, energía o pulso se salen de rango, y quedan *incapacitados* esperando **evacuación por equipo**.
+- **Derrumbe secundario**: buscar dentro de zonas de colapso acumula riesgo → el rescatista puede quedar **atrapado**.
+
+Los rescatistas se desplazan con **A\* sobre una grilla de navegación**, evitan obstáculos y eligen la celda alcanzable más cercana a la víctima para excavar.
+
+---
 
 ## 🕶️ Realidad Mixta
 
-- **Passthrough MR**: botón `📷 Activar Passthrough MR` usa `getUserMedia` para poner la cámara real como fondo del visor (simula gafas MR).
-- Visor térmico / nocturno, retícula HUD, coordenadas, efecto scanline, partículas de calor, oscurecimiento por polvo en espacio confinado.
-- Avatar con dispositivo real (foto subida) como referencia visual.
+- **Passthrough MR**: `getUserMedia` pone la cámara real como fondo del mapa (efecto de gafas MR).
+- HUD con retícula, coordenadas, scanlines y partículas de humo.
+- Panel de telemetría y centro de control externo sincronizado en vivo: la mezcla entre el mundo físico (cámara) y los datos del dispositivo es el núcleo del juego.
 
-## Thresholds
+---
 
-| Medida | Normal | Alerta | Crítico |
-|--------|--------|--------|---------|
-| Temp corporal | 36.5–37.5°C | ≥37.8°C | ≥39°C |
-| Temp ambiente | <35°C | ≥35°C | ≥45°C |
-| HR | 60–100 | >100 / <55 | >135 / <50 |
-| SpO₂ | 95–100% | <95% | <90% |
-| Caída | 1g | >1.5g | >1.9g / flag |
-| Inmovilidad | 0s | >4s | >9s atrapado |
+## 📊 Umbrales
+
+| Medida | Normal | Advertencia | Crítico |
+|---|---|---|---|
+| Frecuencia cardíaca | 55–100 bpm | >100 / <55 | >140 / <50 |
+| SpO₂ | 95–100 % | <95 % | <90 % |
+| Temperatura | <37.8 °C | ≥37.8 °C | ≥39 °C |
+| Energía | >40 % | ≤40 % | ≤20 % |
+
+---
 
 ## 📁 Archivos
 
-- `index.html` — juego completo (visor MR + telemetría integrada + motor de simulación)
-- `monitor.html` — pantalla externa independiente (ideal segundo monitor / proyector)
-- `assets/dispositivo.png` — foto del arnés real usada como avatar (si falta, cae a `Captura de pantalla …png`)
+- `index.html` — juego completo autocontenido (mapa, motor de simulación, telemetría, ayudas remotas).
+- `monitor.html` — pantalla externa independiente del centro de control (segundo monitor / proyector).
 
-Ambos HTML son autocontenidos, sin build step, usan Chart.js por CDN y Web Audio API para alertas. Sincronización por `BroadcastChannel('guardian_mr')`.
+Ambos son HTML estático, sin build step ni dependencias externas (sin CDN): gráficos dibujados a mano en `<canvas>`, alertas con Web Audio API y sincronización por `BroadcastChannel('terremoto_mr')`.
 
-## 🚀 Deploy
+---
 
-Es estático — funciona en GitHub Pages:
-
-```bash
-git push origin main
-# Activar Pages desde main → root
-```
-
-O abrir local con cualquier servidor:
+## 🚀 Ejecutar
 
 ```bash
 npx serve .
-# o python -m http.server 8000
+# o: python -m http.server 8000
 ```
 
-Abre `http://localhost:8000/index.html` y en otra ventana `monitor.html`.
+Abre `http://localhost:8000/index.html` y, en otra ventana, `monitor.html`.
+También funciona en GitHub Pages (sitio estático).
+
+---
 
 ## 🔌 Futuro hardware
 
-El motor está listo para reemplazar el simulador por datos reales BLE/WiFi del dispositivo físico (el `state` central puede alimentarse por Web Bluetooth/Web Serial). La pantalla externa ya consume el mismo canal.
+El motor consume un objeto `state` central; puede alimentarse con datos reales de un dispositivo físico por BLE/WiFi (Web Bluetooth / Web Serial) sin cambiar la capa de presentación. El monitor externo ya consume ese mismo canal de datos.
 
 ---
 
