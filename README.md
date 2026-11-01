@@ -1,113 +1,150 @@
-# TERREMOTO MR — Centro de Control de Rescate
+# NEXO Rescate MR — Centro de Mando
 
-**Juego interactivo de Realidad Mixta (Merged Reality / Mixed Reality) de rescate tras un terremoto.**
+**Juego interactivo de realidad mixta (Merged / Mixed Reality) de rescate tras un terremoto.**
 
-> Varios **rescatistas** operan en una ciudad colapsada. Tú estás a distancia, frente al **dispositivo de telemetría**, y desde ahí ves en vivo su **SpO₂, frecuencia cardíaca, temperatura, energía, ubicación y si están atrapados o necesitan ayuda**. Tu trabajo es decidir **cómo resolver sus necesidades sin estar ahí** mientras ellos buscan a las personas atrapadas y las llevan a un **punto de encuentro seguro**.
+> Una ciudad ha colapsado. Cuatro rescatistas operan en el terreno mientras tú, a distancia,
+> los coordinas desde un **dispositivo de telemetría**: ves en vivo su **SpO₂, frecuencia cardíaca,
+> temperatura, energía, ubicación y estado** (atrapado, incapacitado, necesita ayuda), y decides
+> **cómo resolver sus necesidades sin estar ahí**. Ellos buscan a los civiles atrapados y los
+> trasladan a un **punto de encuentro seguro**.
+
+Reescrito desde cero con **React + TypeScript + Three.js**. Sin CDN: todo se sirve localmente.
+
+![Centro de mando durante la operación](docs/captura-juego.png)
+
+<details>
+<summary>Más capturas</summary>
+
+![Briefing inicial](docs/captura-briefing.png)
+
+![Monitor externo sincronizado](docs/captura-monitor.png)
+
+</details>
 
 ---
 
 ## 🎮 Cómo jugar
 
-1. Abre `index.html` — es el **Centro de Mando MR** (pantalla principal del jugador).
-2. Pulsa **▶ INICIAR SIMULACIÓN**.
-3. Elige un rescatista en la lista de la derecha (o haz clic sobre él en el mapa).
-4. Desde el **dispositivo** puedes, a distancia:
-   - 🫁 **Oxígeno** → sube el SpO₂ de un rescatista agotado
-   - 💧 **Agua / enfriamiento** → baja temperatura y frecuencia cardíaca
-   - ⚡ **Estimulante** → recupera energía
-   - 🚑 **Equipo de rescate** → libera a un rescatista atrapado o evacúa a uno incapacitado
-5. Da órdenes en el mapa: **🔍 Buscar víctimas**, **🟢 Ir a zona segura**, **🩹 Primeros auxilios**, **✖ Cancelar**.
-6. Abre la **pantalla externa** con `⧉ Centro de Control` (o el archivo `monitor.html` en un segundo monitor). Se sincroniza por `BroadcastChannel('terremoto_mr')` con respaldo en `localStorage`.
+1. Abre la app y pulsa **▶ Iniciar operación** (o `Espacio`).
+2. Selecciona un rescatista en el panel izquierdo, en el mapa 3D, o con las teclas `1`–`4`.
+3. Desde el **dispositivo NEXO·LINK** (panel derecho) envía ayuda remota en dron:
+   - 🫁 **Oxígeno** → sube el SpO₂ de un rescatista agotado o expuesto a gas.
+   - 💧 **Hidratación** → baja temperatura y frecuencia cardíaca.
+   - 🩺 **Estabilizar** → recupera energía y signos de un rescatista incapacitado.
+   - 🚨 **Extracción** → libera a un rescatista atrapado bajo escombros.
+4. Da órdenes: **Buscar**, **Zona segura**, **Mantener**, o haz clic en el mapa para moverlo
+   y sobre un civil para asignar su rescate.
+5. Los recursos son **limitados** y cada envío tarda unos segundos en llegar. Prioriza.
 
-**Objetivo:** rescatar a las 8 víctimas antes de que se agote el tiempo (6 min) o el oxígeno.
-**Derrota:** todos los rescatistas fuera de combate, o el tiempo termina con menos de la mitad de las víctimas rescatadas.
+**Objetivo:** llevar a los **8 civiles** al punto seguro antes de que se agoten los **6 minutos**.
+**Derrota:** tiempo agotado, o todo el equipo fuera de operación sin recursos de rescate.
 
 ### 🕹️ Controles
 
 | Acción | Control |
 |---|---|
-| Seleccionar rescatista | Clic en su tarjeta o en el mapa |
-| Mover rescatista | Clic en el mapa con él seleccionado |
-| Órdenes y ayudas | Botones del panel derecho |
-| Passthrough MR | Botón `📷 MR Passthrough` |
-| Pausa / velocidad | `⏸ PAUSA` y selector de velocidad |
+| Seleccionar rescatista | Clic en su tarjeta / en el mapa · teclas `1`–`4` |
+| Mover rescatista | Clic en una calle del mapa |
+| Asignar rescate de civil | Clic sobre el marcador del civil |
+| Orbitar / zoom / paneo | Arrastrar · rueda · clic derecho |
+| Iniciar / pausar | `Espacio` |
+| Ayuda | `H` |
+| Velocidad | Botón `1× / 2× / 4×` |
+| Realidad mixta | Botón `MR` (cámara como fondo) |
+| Monitor externo | Botón ↗ o `monitor.html` en otra pestaña |
 
 ---
 
 ## 📟 El dispositivo — qué se puede ver
 
-Cada rescatista transmite:
+Cada rescatista transmite en vivo:
 
-- ❤️ **Frecuencia cardíaca** (bpm) con umbrales
-- 🫁 **SpO₂** (%) — el indicador más crítico en derrumbes
-- 🌡️ **Temperatura corporal** (°C) — calor por esfuerzo y por incendios
-- ⚡ **Energía** (%) — se agota cargando víctimas y excavando
-- 📍 **Ubicación** en el mapa (coordenadas y punto en tiempo real)
-- 🧱 **Atrapado** — derrumbe secundario o zona de colapso
-- `!` **Necesita ayuda** — alerta directa al operador
-- 🤚 **Llevando víctima** / **extrayendo**
+- ❤️ **Frecuencia cardíaca** (bpm) con historial.
+- 🫁 **SpO₂** (%) — crítico en derrumbes y fugas de gas.
+- 🌡️ **Temperatura corporal** (°C) — sube con el esfuerzo y cerca del incendio.
+- ⚡ **Energía** (%) — se agota excavando y cargando civiles; se recupera en zona segura.
+- 📍 **Ubicación** (sector y coordenadas en tiempo real).
+- 🧱 **Atrapado** — por derrumbe o réplica sísmica.
+- ⚠️ **Necesita ayuda** — alerta directa al operador.
+- 🤚 **Trasladando civil** / **extrayendo**.
 
-Los umbrales se muestran en colores: **verde** normal, **ámbar** advertencia, **rojo** crítico (con alerta sonora).
+Umbrales por color: **verde** normal · **ámbar** advertencia · **rojo** crítico (con alerta sonora).
+
+| Medida | Normal | Advertencia | Crítico |
+|---|---|---|---|
+| SpO₂ | ≥95 % | 90–94 % | <90 % |
+| Frecuencia cardíaca | 55–110 bpm | 111–140 / 50–54 | >140 / <50 |
+| Temperatura | <37.8 °C | 37.8–38.9 °C | ≥39 °C |
+| Energía | >40 % | 21–40 % | ≤20 % |
+
+> ⚠️ Todos los valores son **ficticios y educativos**. Esto no es un dispositivo médico.
 
 ---
 
 ## 🌍 El escenario
 
-- Ciudad de 1700 × 1050 con una grilla de calles (8 × 5 manzanas).
-- **~16 % de escombros** en la calle, edificios **colapsados**, y peligros: 🔥 incendio, ☣️ gas, ⚡ cables eléctricos.
-- **2 puntos de encuentro seguro** (los verdes del mapa) y una **base de mando** abajo al centro.
-- **8 víctimas**: atrapadas (⛏ excavación de 7 s) y heridas (5 s), con salud que decae con el tiempo.
-- **4 rescatistas**: búsqueda, médico, transporte y excavación; caen si su SpO₂, energía o pulso se salen de rango, y quedan *incapacitados* esperando **evacuación por equipo**.
-- **Derrumbe secundario**: buscar dentro de zonas de colapso acumula riesgo → el rescatista puede quedar **atrapado**.
-
-Los rescatistas se desplazan con **A\* sobre una grilla de navegación**, evitan obstáculos y eligen la celda alcanzable más cercana a la víctima para excavar.
+- Ciudad 3D isométrica con manzanas, calles, edificios dañados y **colapsados**.
+- **8 civiles** ocultos al inicio: los rescatistas los **localizan**, **extraen** (más lento si
+  están atrapados) y **cargan** hasta el punto seguro.
+- **4 rescatistas** con roles: búsqueda, medicina, transporte y rescate técnico.
+- **Peligros dinámicos:** 🔥 incendio (se extiende), ☣️ fuga de gas, 🧱 estructura inestable.
+- **Réplica sísmica** al minuto 1:15: puede atrapar a quien siga cerca del colapso.
+- Navegación **A\*** sobre grilla: los rescatistas rodean edificios y evitan peligros.
+- **Búsqueda automática** (conmutable): el equipo elige al civil libre más cercano.
 
 ---
 
 ## 🕶️ Realidad Mixta
 
-- **Passthrough MR**: `getUserMedia` pone la cámara real como fondo del mapa (efecto de gafas MR).
-- HUD con retícula, coordenadas, scanlines y partículas de humo.
-- Panel de telemetría y centro de control externo sincronizado en vivo: la mezcla entre el mundo físico (cámara) y los datos del dispositivo es el núcleo del juego.
-
----
-
-## 📊 Umbrales
-
-| Medida | Normal | Advertencia | Crítico |
-|---|---|---|---|
-| Frecuencia cardíaca | 55–100 bpm | >100 / <55 | >140 / <50 |
-| SpO₂ | 95–100 % | <95 % | <90 % |
-| Temperatura | <37.8 °C | ≥37.8 °C | ≥39 °C |
-| Energía | >40 % | ≤40 % | ≤20 % |
-
----
-
-## 📁 Archivos
-
-- `index.html` — juego completo autocontenido (mapa, motor de simulación, telemetría, ayudas remotas).
-- `monitor.html` — pantalla externa independiente del centro de control (segundo monitor / proyector).
-
-Ambos son HTML estático, sin build step ni dependencias externas (sin CDN): gráficos dibujados a mano en `<canvas>`, alertas con Web Audio API y sincronización por `BroadcastChannel('terremoto_mr')`.
+- **Modo MR**: `getUserMedia` coloca la cámara real como fondo y superpone el mapa táctico 3D
+  y la telemetría. Es una aproximación de *merged reality* sin gafas especializadas.
+- **Monitor externo** (`monitor.html`): pantalla de solo lectura sincronizada en vivo por
+  `BroadcastChannel` con respaldo en `localStorage`. Ideal para segundo monitor o proyector.
 
 ---
 
 ## 🚀 Ejecutar
 
 ```bash
-npx serve .
-# o: python -m http.server 8000
+npm install
+npm run dev        # http://localhost:5173
 ```
 
-Abre `http://localhost:8000/index.html` y, en otra ventana, `monitor.html`.
-También funciona en GitHub Pages (sitio estático).
+```bash
+npm run build      # genera dist/
+npm run preview    # sirve la build
+npm test           # 17 pruebas del motor (vitest)
+npm run smoke      # prueba de humo con navegador headless (requiere dev server activo)
+```
+
+Funciona en cualquier hosting estático (GitHub Pages, Netlify, etc.). La cámara requiere
+**HTTPS** o `localhost`.
+
+### GitHub Pages
+
+El workflow `.github/workflows/deploy.yml` construye y publica `dist/` en cada push a `main`.
+Activa Pages en *Settings → Pages → Source: GitHub Actions*.
 
 ---
 
-## 🔌 Futuro hardware
+## 📁 Estructura
 
-El motor consume un objeto `state` central; puede alimentarse con datos reales de un dispositivo físico por BLE/WiFi (Web Bluetooth / Web Serial) sin cambiar la capa de presentación. El monitor externo ya consume ese mismo canal de datos.
+```
+src/
+  game/         Motor de simulación puro (estado, vitals, A*, eventos, ayuda remota)
+    engine.ts   GameEngine: tick, órdenes, drones, condiciones de victoria/derrota
+    world.ts    Edificios, peligros, spawns, punto seguro
+    pathfinding.ts  A* sobre grilla de navegación
+    sync.ts     Publicación/suscripción al monitor externo
+  scene/        Mapa 3D con Three.js (edificios, unidades, drones, peligros)
+  components/   Paneles: equipo, dispositivo, registro, monitor, ayuda
+  styles/       Tema visual del centro de mando
+monitor.html    Entrada del monitor externo
+```
+
+El motor es independiente de la presentación: podría alimentarse con datos reales de un
+dispositivo físico (BLE / Web Serial) sin cambiar la capa visual.
 
 ---
 
-Hecho para **zharpinzon/Modelo3D** • 2026
+Hecho para **zharpinzon/Modelo3D** · 2026
